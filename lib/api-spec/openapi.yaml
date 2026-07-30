@@ -22,6 +22,8 @@ tags:
     description: Partner direct expenses
   - name: petty-cash-given
     description: Petty cash given to accountant
+  - name: excel-import
+    description: Bulk import from Excel or CSV
 paths:
   /healthz:
     get:
@@ -681,6 +683,25 @@ paths:
         "204":
           description: Joint income record deleted
 
+  /excel-import:
+    post:
+      operationId: bulkImport
+      tags: [excel-import]
+      summary: Bulk import records from Excel or CSV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkImportInput"
+      responses:
+        "200":
+          description: Import results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkImportResult"
+
 components:
   schemas:
     HealthStatus:
@@ -1038,3 +1059,54 @@ components:
           type: string
         amount:
           type: number
+
+    BulkImportInput:
+      type: object
+      required: [module, rows]
+      properties:
+        module:
+          type: string
+          enum: [investments, direct-expenses, petty-cash-given, accountant-expenses, joint-incomes]
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportRow"
+
+    ImportRow:
+      type: object
+      required: [entryDate, amount]
+      properties:
+        receiptNumber:
+          type: ["string", "null"]
+        entryDate:
+          type: string
+        description:
+          type: ["string", "null"]
+        partnerId:
+          type: ["number", "null"]
+        incomeType:
+          type: ["string", "null"]
+        amount:
+          type: number
+
+    BulkImportResult:
+      type: object
+      required: [imported, skipped, errors]
+      properties:
+        imported:
+          type: number
+        skipped:
+          type: number
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportRowError"
+
+    ImportRowError:
+      type: object
+      required: [row, message]
+      properties:
+        row:
+          type: number
+        message:
+          type: string

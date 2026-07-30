@@ -8,6 +8,7 @@ import directExpensesRouter from "./direct-expenses";
 import pettyCashGivenRouter from "./petty-cash-given";
 import accountantExpensesRouter from "./accountant-expenses";
 import jointIncomesRouter from "./joint-incomes";
+import excelImportRouter from "./excel-import";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(directExpensesRouter);
 router.use(pettyCashGivenRouter);
 router.use(accountantExpensesRouter);
 router.use(jointIncomesRouter);
+router.use(excelImportRouter);
 
 export default router;

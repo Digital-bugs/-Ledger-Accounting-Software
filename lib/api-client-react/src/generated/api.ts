@@ -25,6 +25,8 @@ import type {
   AccountantExpenseSummary,
   AccountantExpensesPage,
   Backup,
+  BulkImportInput,
+  BulkImportResult,
   DashboardSummary,
   DirectExpense,
   DirectExpenseBody,
@@ -2331,5 +2333,76 @@ export const useDeleteJointIncome = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteJointIncomeMutationOptions(options));
+    }
+
+export const getBulkImportUrl = () => {
+
+
+
+
+  return `/api/excel-import`
+}
+
+/**
+ * @summary Bulk import records from Excel or CSV
+ */
+export const bulkImport = async (bulkImportInput: BulkImportInput, options?: Parameters<typeof customFetch>[1]): Promise<BulkImportResult> => {
+
+  return customFetch<BulkImportResult>(getBulkImportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(bulkImportInput)
+  }
+);}
+
+
+
+
+
+export const getBulkImportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkImport>>, TError,{data: BodyType<BulkImportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bulkImport>>, TError,{data: BodyType<BulkImportInput>}, TContext> => {
+
+const mutationKey = ['bulkImport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bulkImport>>, {data: BodyType<BulkImportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  bulkImport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BulkImportMutationResult = NonNullable<Awaited<ReturnType<typeof bulkImport>>>
+    export type BulkImportMutationBody = BodyType<BulkImportInput>
+    export type BulkImportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Bulk import records from Excel or CSV
+ */
+export const useBulkImport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bulkImport>>, TError,{data: BodyType<BulkImportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bulkImport>>,
+        TError,
+        {data: BodyType<BulkImportInput>},
+        TContext
+      > => {
+      return useMutation(getBulkImportMutationOptions(options));
     }
 

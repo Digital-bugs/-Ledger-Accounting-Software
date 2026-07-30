@@ -1,0 +1,97 @@
+Build the complete "Excel Import" module.
+
+Requirements:
+
+Support both methods:
+
+1. Import Excel (.xlsx and .csv)
+2. Direct Copy/Paste from Microsoft Excel
+
+The import screen must include:
+
+- Select Excel File button
+- Drag & Drop support
+- Copy/Paste Grid
+- Preview Table before saving
+- Column Mapping
+- Validation Panel
+- Import Button
+- Cancel Button
+
+Supported fields:
+
+• Receipt Number
+• Date
+• Description
+• Partner
+• Income Type
+• Amount
+
+Column Mapping:
+
+Allow the user to map Excel columns manually.
+
+Example:
+
+Excel Column A → Receipt Number
+Excel Column B → Date
+Excel Column C → Description
+Excel Column D → Partner
+Excel Column E → Amount
+
+Business Rules:
+
+- Import thousands of rows at once.
+- Support 3,000–10,000 records efficiently.
+- Do not insert duplicate Receipt Numbers.
+- Skip empty rows.
+- Validate Date and Amount before importing.
+- Show row number if an error exists.
+- Allow user to fix errors before importing.
+
+Preview:
+
+Display imported rows in a professional table before saving.
+
+After Import:
+
+- Save every valid row into SQLite permanently.
+- Imported data must remain after application restart.
+- Dashboard totals must update automatically.
+- Investment, Direct Expense, Petty Cash, Accountant Expense and Joint Income modules must immediately reflect imported records.
+
+Performance:
+
+- Fast import for large Excel files.
+- No freezing while importing.
+- Show a progress bar with percentage completed.
+
+Error Handling:
+
+If any row contains invalid data:
+
+- Highlight the row.
+- Display the exact error.
+- Continue validating remaining rows.
+- Import only valid records after user confirmation.
+
+UI:
+
+Use the same professional accounting software design.
+
+Everything must work completely offline.
+
+Use SQLite only.
+
+No cloud services.
+
+Run the application after implementation.
+
+Verify:
+
+- Zero TypeScript errors.
+- Zero runtime errors.
+- Excel import works correctly.
+- Copy/Paste from Excel works.
+- Dashboard updates automatically.
+- Data remains after restarting the application.

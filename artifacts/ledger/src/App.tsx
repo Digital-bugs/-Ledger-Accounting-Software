@@ -11,6 +11,7 @@ import { PartnerDirectExpenses } from "@/pages/PartnerDirectExpenses";
 import { PettyCashGiven } from "@/pages/PettyCashGiven";
 import { AccountantExpenses } from "@/pages/AccountantExpenses";
 import { JointCompanyIncome } from "@/pages/JointCompanyIncome";
+import { ExcelImport } from "@/pages/ExcelImport";
 import { 
   Landmark, 
   ReceiptText, 
@@ -54,9 +55,7 @@ function Router() {
         <Route path="/settlement">
           <PageWrapper title="Final Summary & Settlement" icon={Scale} description="Generate and view final settlements to calculate amounts owed to or from partners." buttonText="Generate Settlement" />
         </Route>
-        <Route path="/excel-import">
-          <PageWrapper title="Excel Data Import" icon={FileSpreadsheet} description="No imports found. Use this tool to bulk import data from Excel spreadsheets." buttonText="Upload File" />
-        </Route>
+        <Route path="/excel-import" component={ExcelImport} />
         <Route path="/reports">
           <PageWrapper title="Reports" icon={PieChart} description="No generated reports. Use this module to export P&L and balance sheets." buttonText="Generate Report" />
         </Route>

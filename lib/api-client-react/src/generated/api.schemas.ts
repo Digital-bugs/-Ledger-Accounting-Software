@@ -185,6 +185,46 @@ export interface JointIncomeInput {
   amount: number;
 }
 
+export type BulkImportInputModule = typeof BulkImportInputModule[keyof typeof BulkImportInputModule];
+
+
+export const BulkImportInputModule = {
+  investments: 'investments',
+  'direct-expenses': 'direct-expenses',
+  'petty-cash-given': 'petty-cash-given',
+  'accountant-expenses': 'accountant-expenses',
+  'joint-incomes': 'joint-incomes',
+} as const;
+
+export interface ImportRow {
+  /** @nullable */
+  receiptNumber?: string | null;
+  entryDate: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  partnerId?: number | null;
+  /** @nullable */
+  incomeType?: string | null;
+  amount: number;
+}
+
+export interface BulkImportInput {
+  module: BulkImportInputModule;
+  rows: ImportRow[];
+}
+
+export interface ImportRowError {
+  row: number;
+  message: string;
+}
+
+export interface BulkImportResult {
+  imported: number;
+  skipped: number;
+  errors: ImportRowError[];
+}
+
 export type ListInvestmentsParams = {
 /**
  * Search by receipt number or description

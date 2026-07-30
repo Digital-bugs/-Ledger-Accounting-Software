@@ -576,3 +576,28 @@ export const DeleteJointIncomeParams = zod.object({
 export const DeleteJointIncomeResponse = zod.void()
 
 
+/**
+ * @summary Bulk import records from Excel or CSV
+ */
+export const BulkImportBody = zod.object({
+  "module": zod.enum(['investments', 'direct-expenses', 'petty-cash-given', 'accountant-expenses', 'joint-incomes']),
+  "rows": zod.array(zod.object({
+  "receiptNumber": zod.string().nullish(),
+  "entryDate": zod.string(),
+  "description": zod.string().nullish(),
+  "partnerId": zod.number().nullish(),
+  "incomeType": zod.string().nullish(),
+  "amount": zod.number()
+}))
+})
+
+export const BulkImportResponse = zod.object({
+  "imported": zod.number(),
+  "skipped": zod.number(),
+  "errors": zod.array(zod.object({
+  "row": zod.number(),
+  "message": zod.string()
+}))
+})
+
+
