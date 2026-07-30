@@ -153,6 +153,38 @@ export interface AccountantExpenseBody {
   amount: number;
 }
 
+export interface JointIncome {
+  id: number;
+  receiptNumber: string;
+  entryDate: string;
+  description: string;
+  incomeType: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface JointIncomeSummary {
+  rentTotal: number;
+  officeSaleTotal: number;
+  flatSaleTotal: number;
+  otherTotal: number;
+  combinedTotal: number;
+}
+
+export interface JointIncomesPage {
+  data: JointIncome[];
+  total: number;
+  summary: JointIncomeSummary;
+}
+
+export interface JointIncomeInput {
+  receiptNumber: string;
+  entryDate: string;
+  description?: string;
+  incomeType: string;
+  amount: number;
+}
+
 export type ListInvestmentsParams = {
 /**
  * Search by receipt number or description
@@ -301,6 +333,45 @@ export type ListAccountantExpensesSortDir = typeof ListAccountantExpensesSortDir
 
 
 export const ListAccountantExpensesSortDir = {
+  asc: 'asc',
+  desc: 'desc',
+} as const;
+
+export type ListJointIncomesParams = {
+/**
+ * Search by receipt number or description
+ */
+search?: string;
+/**
+ * Filter by income type (Rent, Office Sale, Flat Sale, Other)
+ */
+incomeType?: string;
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+/**
+ * Page number (1-based)
+ */
+page?: number;
+/**
+ * Rows per page (25, 50, 100)
+ */
+pageSize?: number;
+/**
+ * Sort direction by date
+ */
+sortDir?: ListJointIncomesSortDir;
+};
+
+export type ListJointIncomesSortDir = typeof ListJointIncomesSortDir[keyof typeof ListJointIncomesSortDir];
+
+
+export const ListJointIncomesSortDir = {
   asc: 'asc',
   desc: 'desc',
 } as const;

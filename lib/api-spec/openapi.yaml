@@ -562,6 +562,125 @@ paths:
         "204":
           description: Expense deleted
 
+  /joint-incomes/summary:
+    get:
+      operationId: getJointIncomeSummary
+      tags: [joint-income]
+      summary: Get joint income totals by income type
+      responses:
+        "200":
+          description: Joint income summary by type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JointIncomeSummary"
+
+  /joint-incomes:
+    get:
+      operationId: listJointIncomes
+      tags: [joint-income]
+      summary: List joint income records with filters and pagination
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by receipt number or description
+        - name: incomeType
+          in: query
+          schema:
+            type: string
+          description: Filter by income type (Rent, Office Sale, Flat Sale, Other)
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+          description: Filter from date (YYYY-MM-DD)
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+          description: Filter to date (YYYY-MM-DD)
+        - name: page
+          in: query
+          schema:
+            type: number
+          description: Page number (1-based)
+        - name: pageSize
+          in: query
+          schema:
+            type: number
+          description: Rows per page (25, 50, 100)
+        - name: sortDir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort direction by date
+      responses:
+        "200":
+          description: Paginated list of joint income records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JointIncomesPage"
+
+    post:
+      operationId: createJointIncome
+      tags: [joint-income]
+      summary: Create a new joint income record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JointIncomeInput"
+      responses:
+        "201":
+          description: Joint income record created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JointIncome"
+
+  /joint-incomes/{id}:
+    put:
+      operationId: updateJointIncome
+      tags: [joint-income]
+      summary: Update an existing joint income record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JointIncomeInput"
+      responses:
+        "200":
+          description: Joint income record updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JointIncome"
+    delete:
+      operationId: deleteJointIncome
+      tags: [joint-income]
+      summary: Delete a joint income record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Joint income record deleted
+
 components:
   schemas:
     HealthStatus:
@@ -854,6 +973,68 @@ components:
         entryDate:
           type: string
         description:
+          type: string
+        amount:
+          type: number
+
+    JointIncome:
+      type: object
+      required: [id, receiptNumber, entryDate, description, incomeType, amount, createdAt]
+      properties:
+        id:
+          type: number
+        receiptNumber:
+          type: string
+        entryDate:
+          type: string
+        description:
+          type: string
+        incomeType:
+          type: string
+        amount:
+          type: number
+        createdAt:
+          type: string
+
+    JointIncomeSummary:
+      type: object
+      required: [rentTotal, officeSaleTotal, flatSaleTotal, otherTotal, combinedTotal]
+      properties:
+        rentTotal:
+          type: number
+        officeSaleTotal:
+          type: number
+        flatSaleTotal:
+          type: number
+        otherTotal:
+          type: number
+        combinedTotal:
+          type: number
+
+    JointIncomesPage:
+      type: object
+      required: [data, total, summary]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/JointIncome"
+        total:
+          type: number
+        summary:
+          $ref: "#/components/schemas/JointIncomeSummary"
+
+    JointIncomeInput:
+      type: object
+      required: [receiptNumber, entryDate, incomeType, amount]
+      properties:
+        receiptNumber:
+          type: string
+        entryDate:
+          type: string
+        description:
+          type: string
+        incomeType:
           type: string
         amount:
           type: number

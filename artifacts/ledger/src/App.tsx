@@ -10,6 +10,7 @@ import { PartnerInvestments } from "@/pages/PartnerInvestments";
 import { PartnerDirectExpenses } from "@/pages/PartnerDirectExpenses";
 import { PettyCashGiven } from "@/pages/PettyCashGiven";
 import { AccountantExpenses } from "@/pages/AccountantExpenses";
+import { JointCompanyIncome } from "@/pages/JointCompanyIncome";
 import { 
   Landmark, 
   ReceiptText, 
@@ -49,9 +50,7 @@ function Router() {
         <Route path="/partner-expenses" component={PartnerDirectExpenses} />
         <Route path="/petty-cash" component={PettyCashGiven} />
         <Route path="/accountant-expenses" component={AccountantExpenses} />
-        <Route path="/joint-income">
-          <PageWrapper title="Joint Company Income" icon={Briefcase} description="No income recorded yet. Use this module to track revenue for the joint venture." />
-        </Route>
+        <Route path="/joint-income" component={JointCompanyIncome} />
         <Route path="/settlement">
           <PageWrapper title="Final Summary & Settlement" icon={Scale} description="Generate and view final settlements to calculate amounts owed to or from partners." buttonText="Generate Settlement" />
         </Route>

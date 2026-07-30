@@ -35,9 +35,14 @@ import type {
   InvestmentBody,
   InvestmentSummary,
   InvestmentsPage,
+  JointIncome,
+  JointIncomeInput,
+  JointIncomeSummary,
+  JointIncomesPage,
   ListAccountantExpensesParams,
   ListDirectExpensesParams,
   ListInvestmentsParams,
+  ListJointIncomesParams,
   ListPettyCashGivenParams,
   Partner,
   PettyCashGivenBody,
@@ -1951,5 +1956,380 @@ export const useDeleteAccountantExpense = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteAccountantExpenseMutationOptions(options));
+    }
+
+export const getGetJointIncomeSummaryUrl = () => {
+
+
+
+
+  return `/api/joint-incomes/summary`
+}
+
+/**
+ * @summary Get joint income totals by income type
+ */
+export const getJointIncomeSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<JointIncomeSummary> => {
+
+  return customFetch<JointIncomeSummary>(getGetJointIncomeSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetJointIncomeSummaryQueryKey = () => {
+    return [
+    `/api/joint-incomes/summary`
+    ] as const;
+    }
+
+
+export const getGetJointIncomeSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getJointIncomeSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getJointIncomeSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetJointIncomeSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getJointIncomeSummary>>> = ({ signal }) => getJointIncomeSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getJointIncomeSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetJointIncomeSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getJointIncomeSummary>>>
+export type GetJointIncomeSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get joint income totals by income type
+ */
+
+export function useGetJointIncomeSummary<TData = Awaited<ReturnType<typeof getJointIncomeSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getJointIncomeSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetJointIncomeSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListJointIncomesUrl = (params?: ListJointIncomesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/joint-incomes?${stringifiedParams}` : `/api/joint-incomes`
+}
+
+/**
+ * @summary List joint income records with filters and pagination
+ */
+export const listJointIncomes = async (params?: ListJointIncomesParams, options?: Parameters<typeof customFetch>[1]): Promise<JointIncomesPage> => {
+
+  return customFetch<JointIncomesPage>(getListJointIncomesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListJointIncomesQueryKey = (params?: ListJointIncomesParams,) => {
+    return [
+    `/api/joint-incomes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListJointIncomesQueryOptions = <TData = Awaited<ReturnType<typeof listJointIncomes>>, TError = ErrorType<unknown>>(params?: ListJointIncomesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listJointIncomes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListJointIncomesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listJointIncomes>>> = ({ signal }) => listJointIncomes(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listJointIncomes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListJointIncomesQueryResult = NonNullable<Awaited<ReturnType<typeof listJointIncomes>>>
+export type ListJointIncomesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List joint income records with filters and pagination
+ */
+
+export function useListJointIncomes<TData = Awaited<ReturnType<typeof listJointIncomes>>, TError = ErrorType<unknown>>(
+ params?: ListJointIncomesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listJointIncomes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListJointIncomesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateJointIncomeUrl = () => {
+
+
+
+
+  return `/api/joint-incomes`
+}
+
+/**
+ * @summary Create a new joint income record
+ */
+export const createJointIncome = async (jointIncomeInput: JointIncomeInput, options?: Parameters<typeof customFetch>[1]): Promise<JointIncome> => {
+
+  return customFetch<JointIncome>(getCreateJointIncomeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(jointIncomeInput)
+  }
+);}
+
+
+
+
+
+export const getCreateJointIncomeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createJointIncome>>, TError,{data: BodyType<JointIncomeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createJointIncome>>, TError,{data: BodyType<JointIncomeInput>}, TContext> => {
+
+const mutationKey = ['createJointIncome'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createJointIncome>>, {data: BodyType<JointIncomeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createJointIncome(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateJointIncomeMutationResult = NonNullable<Awaited<ReturnType<typeof createJointIncome>>>
+    export type CreateJointIncomeMutationBody = BodyType<JointIncomeInput>
+    export type CreateJointIncomeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new joint income record
+ */
+export const useCreateJointIncome = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createJointIncome>>, TError,{data: BodyType<JointIncomeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createJointIncome>>,
+        TError,
+        {data: BodyType<JointIncomeInput>},
+        TContext
+      > => {
+      return useMutation(getCreateJointIncomeMutationOptions(options));
+    }
+
+export const getUpdateJointIncomeUrl = (id: number,) => {
+
+
+
+
+  return `/api/joint-incomes/${id}`
+}
+
+/**
+ * @summary Update an existing joint income record
+ */
+export const updateJointIncome = async (id: number,
+    jointIncomeInput: JointIncomeInput, options?: Parameters<typeof customFetch>[1]): Promise<JointIncome> => {
+
+  return customFetch<JointIncome>(getUpdateJointIncomeUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(jointIncomeInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateJointIncomeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateJointIncome>>, TError,{id: number;data: BodyType<JointIncomeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateJointIncome>>, TError,{id: number;data: BodyType<JointIncomeInput>}, TContext> => {
+
+const mutationKey = ['updateJointIncome'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateJointIncome>>, {id: number;data: BodyType<JointIncomeInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateJointIncome(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateJointIncomeMutationResult = NonNullable<Awaited<ReturnType<typeof updateJointIncome>>>
+    export type UpdateJointIncomeMutationBody = BodyType<JointIncomeInput>
+    export type UpdateJointIncomeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an existing joint income record
+ */
+export const useUpdateJointIncome = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateJointIncome>>, TError,{id: number;data: BodyType<JointIncomeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateJointIncome>>,
+        TError,
+        {id: number;data: BodyType<JointIncomeInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateJointIncomeMutationOptions(options));
+    }
+
+export const getDeleteJointIncomeUrl = (id: number,) => {
+
+
+
+
+  return `/api/joint-incomes/${id}`
+}
+
+/**
+ * @summary Delete a joint income record
+ */
+export const deleteJointIncome = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteJointIncomeUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteJointIncomeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteJointIncome>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteJointIncome>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteJointIncome'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteJointIncome>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteJointIncome(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteJointIncomeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteJointIncome>>>
+
+    export type DeleteJointIncomeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a joint income record
+ */
+export const useDeleteJointIncome = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteJointIncome>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteJointIncome>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteJointIncomeMutationOptions(options));
     }
 

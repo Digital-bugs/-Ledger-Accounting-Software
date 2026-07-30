@@ -472,3 +472,107 @@ export const DeleteAccountantExpenseParams = zod.object({
 export const DeleteAccountantExpenseResponse = zod.void()
 
 
+/**
+ * @summary Get joint income totals by income type
+ */
+export const GetJointIncomeSummaryResponse = zod.object({
+  "rentTotal": zod.number(),
+  "officeSaleTotal": zod.number(),
+  "flatSaleTotal": zod.number(),
+  "otherTotal": zod.number(),
+  "combinedTotal": zod.number()
+})
+
+
+/**
+ * @summary List joint income records with filters and pagination
+ */
+export const ListJointIncomesQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search by receipt number or description'),
+  "incomeType": zod.coerce.string().optional().describe('Filter by income type (Rent, Office Sale, Flat Sale, Other)'),
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)'),
+  "page": zod.coerce.number().optional().describe('Page number (1-based)'),
+  "pageSize": zod.coerce.number().optional().describe('Rows per page (25, 50, 100)'),
+  "sortDir": zod.enum(['asc', 'desc']).optional().describe('Sort direction by date')
+})
+
+export const ListJointIncomesResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "incomeType": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number(),
+  "summary": zod.object({
+  "rentTotal": zod.number(),
+  "officeSaleTotal": zod.number(),
+  "flatSaleTotal": zod.number(),
+  "otherTotal": zod.number(),
+  "combinedTotal": zod.number()
+})
+})
+
+
+/**
+ * @summary Create a new joint income record
+ */
+export const CreateJointIncomeBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string().optional(),
+  "incomeType": zod.string(),
+  "amount": zod.number()
+})
+
+export const CreateJointIncomeResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "incomeType": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update an existing joint income record
+ */
+export const UpdateJointIncomeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateJointIncomeBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string().optional(),
+  "incomeType": zod.string(),
+  "amount": zod.number()
+})
+
+export const UpdateJointIncomeResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "incomeType": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a joint income record
+ */
+export const DeleteJointIncomeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteJointIncomeResponse = zod.void()
+
+
