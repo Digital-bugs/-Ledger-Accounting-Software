@@ -37,7 +37,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Top Header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-6">
         <div className="flex items-center gap-4">
-          <div className="h-6 w-6 rounded bg-primary"></div>
+          <img
+            src="/crown-king-logo.png"
+            alt="Crown King logo"
+            className="h-8 w-8 rounded object-contain"
+          />
           <span className="font-semibold text-foreground">Ledger Accounting Software</span>
         </div>
         
