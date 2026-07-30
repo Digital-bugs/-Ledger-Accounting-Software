@@ -32,6 +32,8 @@ import type {
   DirectExpenseBody,
   DirectExpenseSummary,
   DirectExpensesPage,
+  FinalSummaryResult,
+  GetFinalSummaryParams,
   HealthStatus,
   Investment,
   InvestmentBody,
@@ -2334,6 +2336,90 @@ export const useDeleteJointIncome = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getDeleteJointIncomeMutationOptions(options));
     }
+
+export const getGetFinalSummaryUrl = (params?: GetFinalSummaryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/final-summary?${stringifiedParams}` : `/api/final-summary`
+}
+
+/**
+ * @summary Get the complete final summary and settlement calculation
+ */
+export const getFinalSummary = async (params?: GetFinalSummaryParams, options?: Parameters<typeof customFetch>[1]): Promise<FinalSummaryResult> => {
+
+  return customFetch<FinalSummaryResult>(getGetFinalSummaryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinalSummaryQueryKey = (params?: GetFinalSummaryParams,) => {
+    return [
+    `/api/final-summary`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFinalSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getFinalSummary>>, TError = ErrorType<unknown>>(params?: GetFinalSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinalSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinalSummaryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinalSummary>>> = ({ signal }) => getFinalSummary(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinalSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinalSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getFinalSummary>>>
+export type GetFinalSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the complete final summary and settlement calculation
+ */
+
+export function useGetFinalSummary<TData = Awaited<ReturnType<typeof getFinalSummary>>, TError = ErrorType<unknown>>(
+ params?: GetFinalSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinalSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinalSummaryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getBulkImportUrl = () => {
 

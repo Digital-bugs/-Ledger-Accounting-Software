@@ -683,6 +683,30 @@ paths:
         "204":
           description: Joint income record deleted
 
+  /final-summary:
+    get:
+      operationId: getFinalSummary
+      tags: [final-summary]
+      summary: Get the complete final summary and settlement calculation
+      parameters:
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+          description: Filter from date (YYYY-MM-DD)
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+          description: Filter to date (YYYY-MM-DD)
+      responses:
+        "200":
+          description: Final summary with all calculated values and settlement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinalSummaryResult"
+
   /excel-import:
     post:
       operationId: bulkImport
@@ -1088,6 +1112,63 @@ components:
           type: ["string", "null"]
         amount:
           type: number
+
+    FinalSummaryResult:
+      type: object
+      required:
+        - yasirInvestment
+        - khurramInvestment
+        - yasirDirectExpenses
+        - khurramDirectExpenses
+        - yasirPettyCashGiven
+        - khurramPettyCashGiven
+        - totalInvestment
+        - totalDirectExpenses
+        - totalAccountantExpenses
+        - totalExpenses
+        - totalJointIncome
+        - accountantCashBalance
+        - yasirTotalPaid
+        - khurramTotalPaid
+        - combinedTotalPaid
+        - yasirSharePercentage
+        - khurramSharePercentage
+        - yasirExpectedShare
+        - khurramExpectedShare
+        - yasirDifference
+        - khurramDifference
+        - settlementDirection
+        - settlementAmount
+        - settlementText
+        - hasData
+      properties:
+        yasirInvestment:         { type: number }
+        khurramInvestment:       { type: number }
+        yasirDirectExpenses:     { type: number }
+        khurramDirectExpenses:   { type: number }
+        yasirPettyCashGiven:     { type: number }
+        khurramPettyCashGiven:   { type: number }
+        totalInvestment:         { type: number }
+        totalDirectExpenses:     { type: number }
+        totalAccountantExpenses: { type: number }
+        totalExpenses:           { type: number }
+        totalJointIncome:        { type: number }
+        accountantCashBalance:   { type: number }
+        yasirTotalPaid:          { type: number }
+        khurramTotalPaid:        { type: number }
+        combinedTotalPaid:       { type: number }
+        yasirSharePercentage:    { type: number }
+        khurramSharePercentage:  { type: number }
+        yasirExpectedShare:      { type: number }
+        khurramExpectedShare:    { type: number }
+        yasirDifference:         { type: number }
+        khurramDifference:       { type: number }
+        settlementDirection:
+          type: string
+          enum: [yasir_pays_khurram, khurram_pays_yasir, settled]
+        settlementAmount:  { type: number }
+        settlementText:    { type: string }
+        hasData:           { type: boolean }
 
     BulkImportResult:
       type: object

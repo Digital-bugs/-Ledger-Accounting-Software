@@ -214,6 +214,43 @@ export interface BulkImportInput {
   rows: ImportRow[];
 }
 
+export type FinalSummaryResultSettlementDirection = typeof FinalSummaryResultSettlementDirection[keyof typeof FinalSummaryResultSettlementDirection];
+
+
+export const FinalSummaryResultSettlementDirection = {
+  yasir_pays_khurram: 'yasir_pays_khurram',
+  khurram_pays_yasir: 'khurram_pays_yasir',
+  settled: 'settled',
+} as const;
+
+export interface FinalSummaryResult {
+  yasirInvestment: number;
+  khurramInvestment: number;
+  yasirDirectExpenses: number;
+  khurramDirectExpenses: number;
+  yasirPettyCashGiven: number;
+  khurramPettyCashGiven: number;
+  totalInvestment: number;
+  totalDirectExpenses: number;
+  totalAccountantExpenses: number;
+  totalExpenses: number;
+  totalJointIncome: number;
+  accountantCashBalance: number;
+  yasirTotalPaid: number;
+  khurramTotalPaid: number;
+  combinedTotalPaid: number;
+  yasirSharePercentage: number;
+  khurramSharePercentage: number;
+  yasirExpectedShare: number;
+  khurramExpectedShare: number;
+  yasirDifference: number;
+  khurramDifference: number;
+  settlementDirection: FinalSummaryResultSettlementDirection;
+  settlementAmount: number;
+  settlementText: string;
+  hasData: boolean;
+}
+
 export interface ImportRowError {
   row: number;
   message: string;
@@ -415,4 +452,15 @@ export const ListJointIncomesSortDir = {
   asc: 'asc',
   desc: 'desc',
 } as const;
+
+export type GetFinalSummaryParams = {
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+};
 

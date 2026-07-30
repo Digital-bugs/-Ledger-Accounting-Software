@@ -1,0 +1,190 @@
+Build the complete "Final Summary & Settlement" module.
+
+This is the core calculation module of the entire Ledger Accounting Software.
+
+Read all data directly from SQLite.
+
+Do not ask the user to enter any values manually on this screen except the partner share percentages.
+
+Partner Share Settings:
+
+- Yasir = 42.5%
+- Khurram = 57.5%
+
+Allow changing these percentages in Settings only.
+The total must always equal 100%.
+
+Business Rule:
+
+Never apply percentages while entering transactions.
+
+Percentages must only be used inside this Final Summary module.
+
+Read data from all completed modules:
+
+- Partner Investments
+- Partner Direct Expenses
+- Petty Cash Given
+- Accountant Expenses
+- Joint Company Income
+
+Calculate automatically:
+
+1. Yasir Total Investment
+2. Khurram Total Investment
+
+3. Yasir Direct Expenses
+4. Khurram Direct Expenses
+
+5. Yasir Petty Cash Given
+6. Khurram Petty Cash Given
+
+7. Total Partner Investment
+
+8. Total Direct Expenses
+
+9. Total Accountant Expenses
+
+10. Total Expenses =
+Partner Direct Expenses +
+Accountant Expenses
+
+11. Total Joint Company Income
+
+12. Total Paid By Yasir =
+Investment +
+Direct Expenses +
+Petty Cash Given
+
+13. Total Paid By Khurram =
+Investment +
+Direct Expenses +
+Petty Cash Given
+
+14. Combined Total Paid
+
+15. Expected Share of Yasir =
+(Total Expenses × 42.5%)
+
+16. Expected Share of Khurram =
+(Total Expenses × 57.5%)
+
+17. Difference:
+
+If Actual > Expected
+
+Show:
+
+Extra Paid
+
+If Actual < Expected
+
+Show:
+
+Less Paid
+
+18. Final Settlement
+
+Automatically determine:
+
+- Who should receive money.
+- Who should pay money.
+- Exact settlement amount.
+
+Examples:
+
+Khurram must pay Yasir Rs. X
+
+OR
+
+Yasir must pay Khurram Rs. X
+
+Never require manual calculation.
+
+Summary Cards:
+
+- Total Investment
+- Total Expenses
+- Total Joint Income
+- Accountant Cash Balance
+- Yasir Total Paid
+- Khurram Total Paid
+- Yasir Expected Share
+- Khurram Expected Share
+- Yasir Extra/Less Paid
+- Khurram Extra/Less Paid
+- Final Settlement
+
+Visual Report:
+
+Create a professional accounting summary table.
+
+Green values for positive.
+
+Red values for payable amounts.
+
+Settlement section should be highlighted.
+
+Filtering:
+
+Allow filtering by:
+
+- Date Range
+- Month
+- Year
+
+All totals must update automatically.
+
+Export:
+
+Add buttons:
+
+- Print Summary
+- Export PDF
+- Export Excel
+
+Performance:
+
+Read directly from SQLite.
+
+Instant calculations.
+
+Support very large databases.
+
+No duplicate calculations.
+
+Validation:
+
+Never allow divide errors.
+
+Never allow NaN values.
+
+Always verify totals before displaying.
+
+If database is empty display:
+
+"No accounting data available."
+
+Dashboard:
+
+Update automatically whenever any module changes.
+
+Everything must work completely offline.
+
+Use SQLite only.
+
+Do not use cloud services.
+
+Keep existing UI design.
+
+Do not modify completed modules except where integration is required.
+
+Run the application.
+
+Verify:
+
+- Zero TypeScript errors.
+- Zero runtime errors.
+- Settlement calculation is always correct.
+- Dashboard updates automatically.
+- SQLite data persists after restart.

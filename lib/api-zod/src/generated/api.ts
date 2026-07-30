@@ -577,6 +577,43 @@ export const DeleteJointIncomeResponse = zod.void()
 
 
 /**
+ * @summary Get the complete final summary and settlement calculation
+ */
+export const GetFinalSummaryQueryParams = zod.object({
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)')
+})
+
+export const GetFinalSummaryResponse = zod.object({
+  "yasirInvestment": zod.number(),
+  "khurramInvestment": zod.number(),
+  "yasirDirectExpenses": zod.number(),
+  "khurramDirectExpenses": zod.number(),
+  "yasirPettyCashGiven": zod.number(),
+  "khurramPettyCashGiven": zod.number(),
+  "totalInvestment": zod.number(),
+  "totalDirectExpenses": zod.number(),
+  "totalAccountantExpenses": zod.number(),
+  "totalExpenses": zod.number(),
+  "totalJointIncome": zod.number(),
+  "accountantCashBalance": zod.number(),
+  "yasirTotalPaid": zod.number(),
+  "khurramTotalPaid": zod.number(),
+  "combinedTotalPaid": zod.number(),
+  "yasirSharePercentage": zod.number(),
+  "khurramSharePercentage": zod.number(),
+  "yasirExpectedShare": zod.number(),
+  "khurramExpectedShare": zod.number(),
+  "yasirDifference": zod.number(),
+  "khurramDifference": zod.number(),
+  "settlementDirection": zod.enum(['yasir_pays_khurram', 'khurram_pays_yasir', 'settled']),
+  "settlementAmount": zod.number(),
+  "settlementText": zod.string(),
+  "hasData": zod.boolean()
+})
+
+
+/**
  * @summary Bulk import records from Excel or CSV
  */
 export const BulkImportBody = zod.object({

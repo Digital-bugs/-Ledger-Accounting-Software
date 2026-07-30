@@ -12,6 +12,7 @@ import { PettyCashGiven } from "@/pages/PettyCashGiven";
 import { AccountantExpenses } from "@/pages/AccountantExpenses";
 import { JointCompanyIncome } from "@/pages/JointCompanyIncome";
 import { ExcelImport } from "@/pages/ExcelImport";
+import { FinalSummary } from "@/pages/FinalSummary";
 import { 
   Landmark, 
   ReceiptText, 
@@ -52,9 +53,7 @@ function Router() {
         <Route path="/petty-cash" component={PettyCashGiven} />
         <Route path="/accountant-expenses" component={AccountantExpenses} />
         <Route path="/joint-income" component={JointCompanyIncome} />
-        <Route path="/settlement">
-          <PageWrapper title="Final Summary & Settlement" icon={Scale} description="Generate and view final settlements to calculate amounts owed to or from partners." buttonText="Generate Settlement" />
-        </Route>
+        <Route path="/settlement" component={FinalSummary} />
         <Route path="/excel-import" component={ExcelImport} />
         <Route path="/reports">
           <PageWrapper title="Reports" icon={PieChart} description="No generated reports. Use this module to export P&L and balance sheets." buttonText="Generate Report" />

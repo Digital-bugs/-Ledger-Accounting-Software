@@ -9,6 +9,7 @@ import pettyCashGivenRouter from "./petty-cash-given";
 import accountantExpensesRouter from "./accountant-expenses";
 import jointIncomesRouter from "./joint-incomes";
 import excelImportRouter from "./excel-import";
+import finalSummaryRouter from "./final-summary";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(pettyCashGivenRouter);
 router.use(accountantExpensesRouter);
 router.use(jointIncomesRouter);
 router.use(excelImportRouter);
+router.use(finalSummaryRouter);
 
 export default router;
