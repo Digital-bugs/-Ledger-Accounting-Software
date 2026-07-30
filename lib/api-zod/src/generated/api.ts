@@ -67,3 +67,106 @@ export const CreateBackupResponse = zod.object({
 })
 
 
+/**
+ * @summary Get investment totals per partner
+ */
+export const GetInvestmentSummaryResponse = zod.object({
+  "yasirTotal": zod.number(),
+  "khurramTotal": zod.number(),
+  "combinedTotal": zod.number()
+})
+
+
+/**
+ * @summary List partner investments with filters and pagination
+ */
+export const ListInvestmentsQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search by receipt number or description'),
+  "partnerId": zod.coerce.number().optional().describe('Filter by partner ID'),
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)'),
+  "page": zod.coerce.number().optional().describe('Page number (1-based)'),
+  "pageSize": zod.coerce.number().optional().describe('Rows per page (25, 50, 100)'),
+  "sortDir": zod.enum(['asc', 'desc']).optional().describe('Sort direction by date')
+})
+
+export const ListInvestmentsResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number(),
+  "summary": zod.object({
+  "yasirTotal": zod.number(),
+  "khurramTotal": zod.number(),
+  "combinedTotal": zod.number()
+})
+})
+
+
+/**
+ * @summary Create a new partner investment
+ */
+export const CreateInvestmentBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "amount": zod.number()
+})
+
+export const CreateInvestmentResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update an existing investment
+ */
+export const UpdateInvestmentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateInvestmentBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "amount": zod.number()
+})
+
+export const UpdateInvestmentResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete an investment
+ */
+export const DeleteInvestmentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteInvestmentResponse = zod.void()
+
+

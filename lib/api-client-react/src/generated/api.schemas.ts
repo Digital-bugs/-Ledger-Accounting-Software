@@ -31,3 +31,73 @@ export interface Backup {
   sizeBytes: number;
 }
 
+export interface Investment {
+  id: number;
+  receiptNumber: string;
+  entryDate: string;
+  description: string;
+  partnerId: number;
+  partnerName: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface InvestmentSummary {
+  yasirTotal: number;
+  khurramTotal: number;
+  combinedTotal: number;
+}
+
+export interface InvestmentsPage {
+  data: Investment[];
+  total: number;
+  summary: InvestmentSummary;
+}
+
+export interface InvestmentBody {
+  receiptNumber: string;
+  entryDate: string;
+  description: string;
+  partnerId: number;
+  amount: number;
+}
+
+export type ListInvestmentsParams = {
+/**
+ * Search by receipt number or description
+ */
+search?: string;
+/**
+ * Filter by partner ID
+ */
+partnerId?: number;
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+/**
+ * Page number (1-based)
+ */
+page?: number;
+/**
+ * Rows per page (25, 50, 100)
+ */
+pageSize?: number;
+/**
+ * Sort direction by date
+ */
+sortDir?: ListInvestmentsSortDir;
+};
+
+export type ListInvestmentsSortDir = typeof ListInvestmentsSortDir[keyof typeof ListInvestmentsSortDir];
+
+
+export const ListInvestmentsSortDir = {
+  asc: 'asc',
+  desc: 'desc',
+} as const;
+

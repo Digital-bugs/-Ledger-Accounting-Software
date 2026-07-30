@@ -6,6 +6,7 @@ import { Route, Switch, Router as WouterRouter } from "wouter";
 import { Dashboard } from "@/pages/Dashboard";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Backup } from "@/pages/Backup";
+import { PartnerInvestments } from "@/pages/PartnerInvestments";
 import { 
   Landmark, 
   ReceiptText, 
@@ -41,9 +42,7 @@ function Router() {
     <AppLayout>
       <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/partner-investments">
-          <PageWrapper title="Partner Investments" icon={Landmark} description="No partner investments have been added yet. Use this module to track initial capital and additional investments." />
-        </Route>
+        <Route path="/partner-investments" component={PartnerInvestments} />
         <Route path="/partner-expenses">
           <PageWrapper title="Partner Direct Expenses" icon={ReceiptText} description="No direct expenses recorded yet. Use this module to log expenses paid directly by partners." />
         </Route>
