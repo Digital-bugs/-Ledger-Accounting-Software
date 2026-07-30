@@ -20,6 +20,8 @@ tags:
     description: Partner investments
   - name: direct-expenses
     description: Partner direct expenses
+  - name: petty-cash-given
+    description: Petty cash given to accountant
 paths:
   /healthz:
     get:
@@ -327,6 +329,125 @@ paths:
         "204":
           description: Direct expense deleted
 
+  /petty-cash-given/summary:
+    get:
+      operationId: getPettyCashGivenSummary
+      tags: [petty-cash-given]
+      summary: Get petty cash given totals per partner plus accountant cash balance
+      responses:
+        "200":
+          description: Petty cash given summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PettyCashGivenSummary"
+
+  /petty-cash-given:
+    get:
+      operationId: listPettyCashGiven
+      tags: [petty-cash-given]
+      summary: List petty cash given records with filters and pagination
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by receipt number or description
+        - name: partnerId
+          in: query
+          schema:
+            type: number
+          description: Filter by partner ID
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+          description: Filter from date (YYYY-MM-DD)
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+          description: Filter to date (YYYY-MM-DD)
+        - name: page
+          in: query
+          schema:
+            type: number
+          description: Page number (1-based)
+        - name: pageSize
+          in: query
+          schema:
+            type: number
+          description: Rows per page (25, 50, 100)
+        - name: sortDir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort direction by date
+      responses:
+        "200":
+          description: Paginated list of petty cash given records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PettyCashGivenPage"
+
+    post:
+      operationId: createPettyCashGiven
+      tags: [petty-cash-given]
+      summary: Create a new petty cash given record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PettyCashGivenBody"
+      responses:
+        "201":
+          description: Record created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PettyCashGivenRecord"
+
+  /petty-cash-given/{id}:
+    put:
+      operationId: updatePettyCashGiven
+      tags: [petty-cash-given]
+      summary: Update an existing petty cash given record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PettyCashGivenBody"
+      responses:
+        "200":
+          description: Record updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PettyCashGivenRecord"
+    delete:
+      operationId: deletePettyCashGiven
+      tags: [petty-cash-given]
+      summary: Delete a petty cash given record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Record deleted
+
 components:
   schemas:
     HealthStatus:
@@ -493,6 +614,68 @@ components:
           $ref: "#/components/schemas/DirectExpenseSummary"
 
     DirectExpenseBody:
+      type: object
+      required: [receiptNumber, entryDate, description, partnerId, amount]
+      properties:
+        receiptNumber:
+          type: string
+        entryDate:
+          type: string
+        description:
+          type: string
+        partnerId:
+          type: number
+        amount:
+          type: number
+
+    PettyCashGivenRecord:
+      type: object
+      required: [id, receiptNumber, entryDate, description, partnerId, partnerName, amount, createdAt]
+      properties:
+        id:
+          type: number
+        receiptNumber:
+          type: string
+        entryDate:
+          type: string
+        description:
+          type: string
+        partnerId:
+          type: number
+        partnerName:
+          type: string
+        amount:
+          type: number
+        createdAt:
+          type: string
+
+    PettyCashGivenSummary:
+      type: object
+      required: [yasirTotal, khurramTotal, combinedTotal, accountantCashBalance]
+      properties:
+        yasirTotal:
+          type: number
+        khurramTotal:
+          type: number
+        combinedTotal:
+          type: number
+        accountantCashBalance:
+          type: number
+
+    PettyCashGivenPage:
+      type: object
+      required: [data, total, summary]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PettyCashGivenRecord"
+        total:
+          type: number
+        summary:
+          $ref: "#/components/schemas/PettyCashGivenSummary"
+
+    PettyCashGivenBody:
       type: object
       required: [receiptNumber, entryDate, description, partnerId, amount]
       properties:

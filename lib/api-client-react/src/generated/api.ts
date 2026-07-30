@@ -33,7 +33,12 @@ import type {
   InvestmentsPage,
   ListDirectExpensesParams,
   ListInvestmentsParams,
-  Partner
+  ListPettyCashGivenParams,
+  Partner,
+  PettyCashGivenBody,
+  PettyCashGivenPage,
+  PettyCashGivenRecord,
+  PettyCashGivenSummary
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -1191,5 +1196,380 @@ export const useDeleteDirectExpense = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteDirectExpenseMutationOptions(options));
+    }
+
+export const getGetPettyCashGivenSummaryUrl = () => {
+
+
+
+
+  return `/api/petty-cash-given/summary`
+}
+
+/**
+ * @summary Get petty cash given totals per partner plus accountant cash balance
+ */
+export const getPettyCashGivenSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<PettyCashGivenSummary> => {
+
+  return customFetch<PettyCashGivenSummary>(getGetPettyCashGivenSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPettyCashGivenSummaryQueryKey = () => {
+    return [
+    `/api/petty-cash-given/summary`
+    ] as const;
+    }
+
+
+export const getGetPettyCashGivenSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getPettyCashGivenSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPettyCashGivenSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPettyCashGivenSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPettyCashGivenSummary>>> = ({ signal }) => getPettyCashGivenSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPettyCashGivenSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPettyCashGivenSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getPettyCashGivenSummary>>>
+export type GetPettyCashGivenSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get petty cash given totals per partner plus accountant cash balance
+ */
+
+export function useGetPettyCashGivenSummary<TData = Awaited<ReturnType<typeof getPettyCashGivenSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPettyCashGivenSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPettyCashGivenSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListPettyCashGivenUrl = (params?: ListPettyCashGivenParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/petty-cash-given?${stringifiedParams}` : `/api/petty-cash-given`
+}
+
+/**
+ * @summary List petty cash given records with filters and pagination
+ */
+export const listPettyCashGiven = async (params?: ListPettyCashGivenParams, options?: Parameters<typeof customFetch>[1]): Promise<PettyCashGivenPage> => {
+
+  return customFetch<PettyCashGivenPage>(getListPettyCashGivenUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPettyCashGivenQueryKey = (params?: ListPettyCashGivenParams,) => {
+    return [
+    `/api/petty-cash-given`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPettyCashGivenQueryOptions = <TData = Awaited<ReturnType<typeof listPettyCashGiven>>, TError = ErrorType<unknown>>(params?: ListPettyCashGivenParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPettyCashGiven>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPettyCashGivenQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPettyCashGiven>>> = ({ signal }) => listPettyCashGiven(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPettyCashGiven>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPettyCashGivenQueryResult = NonNullable<Awaited<ReturnType<typeof listPettyCashGiven>>>
+export type ListPettyCashGivenQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List petty cash given records with filters and pagination
+ */
+
+export function useListPettyCashGiven<TData = Awaited<ReturnType<typeof listPettyCashGiven>>, TError = ErrorType<unknown>>(
+ params?: ListPettyCashGivenParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPettyCashGiven>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPettyCashGivenQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePettyCashGivenUrl = () => {
+
+
+
+
+  return `/api/petty-cash-given`
+}
+
+/**
+ * @summary Create a new petty cash given record
+ */
+export const createPettyCashGiven = async (pettyCashGivenBody: PettyCashGivenBody, options?: Parameters<typeof customFetch>[1]): Promise<PettyCashGivenRecord> => {
+
+  return customFetch<PettyCashGivenRecord>(getCreatePettyCashGivenUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(pettyCashGivenBody)
+  }
+);}
+
+
+
+
+
+export const getCreatePettyCashGivenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPettyCashGiven>>, TError,{data: BodyType<PettyCashGivenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPettyCashGiven>>, TError,{data: BodyType<PettyCashGivenBody>}, TContext> => {
+
+const mutationKey = ['createPettyCashGiven'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPettyCashGiven>>, {data: BodyType<PettyCashGivenBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPettyCashGiven(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePettyCashGivenMutationResult = NonNullable<Awaited<ReturnType<typeof createPettyCashGiven>>>
+    export type CreatePettyCashGivenMutationBody = BodyType<PettyCashGivenBody>
+    export type CreatePettyCashGivenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new petty cash given record
+ */
+export const useCreatePettyCashGiven = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPettyCashGiven>>, TError,{data: BodyType<PettyCashGivenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPettyCashGiven>>,
+        TError,
+        {data: BodyType<PettyCashGivenBody>},
+        TContext
+      > => {
+      return useMutation(getCreatePettyCashGivenMutationOptions(options));
+    }
+
+export const getUpdatePettyCashGivenUrl = (id: number,) => {
+
+
+
+
+  return `/api/petty-cash-given/${id}`
+}
+
+/**
+ * @summary Update an existing petty cash given record
+ */
+export const updatePettyCashGiven = async (id: number,
+    pettyCashGivenBody: PettyCashGivenBody, options?: Parameters<typeof customFetch>[1]): Promise<PettyCashGivenRecord> => {
+
+  return customFetch<PettyCashGivenRecord>(getUpdatePettyCashGivenUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(pettyCashGivenBody)
+  }
+);}
+
+
+
+
+
+export const getUpdatePettyCashGivenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePettyCashGiven>>, TError,{id: number;data: BodyType<PettyCashGivenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePettyCashGiven>>, TError,{id: number;data: BodyType<PettyCashGivenBody>}, TContext> => {
+
+const mutationKey = ['updatePettyCashGiven'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePettyCashGiven>>, {id: number;data: BodyType<PettyCashGivenBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updatePettyCashGiven(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePettyCashGivenMutationResult = NonNullable<Awaited<ReturnType<typeof updatePettyCashGiven>>>
+    export type UpdatePettyCashGivenMutationBody = BodyType<PettyCashGivenBody>
+    export type UpdatePettyCashGivenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an existing petty cash given record
+ */
+export const useUpdatePettyCashGiven = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePettyCashGiven>>, TError,{id: number;data: BodyType<PettyCashGivenBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updatePettyCashGiven>>,
+        TError,
+        {id: number;data: BodyType<PettyCashGivenBody>},
+        TContext
+      > => {
+      return useMutation(getUpdatePettyCashGivenMutationOptions(options));
+    }
+
+export const getDeletePettyCashGivenUrl = (id: number,) => {
+
+
+
+
+  return `/api/petty-cash-given/${id}`
+}
+
+/**
+ * @summary Delete a petty cash given record
+ */
+export const deletePettyCashGiven = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeletePettyCashGivenUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeletePettyCashGivenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePettyCashGiven>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePettyCashGiven>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deletePettyCashGiven'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePettyCashGiven>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deletePettyCashGiven(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePettyCashGivenMutationResult = NonNullable<Awaited<ReturnType<typeof deletePettyCashGiven>>>
+
+    export type DeletePettyCashGivenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a petty cash given record
+ */
+export const useDeletePettyCashGiven = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePettyCashGiven>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deletePettyCashGiven>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeletePettyCashGivenMutationOptions(options));
     }
 

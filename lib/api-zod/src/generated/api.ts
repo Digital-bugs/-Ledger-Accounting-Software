@@ -273,3 +273,108 @@ export const DeleteDirectExpenseParams = zod.object({
 export const DeleteDirectExpenseResponse = zod.void()
 
 
+/**
+ * @summary Get petty cash given totals per partner plus accountant cash balance
+ */
+export const GetPettyCashGivenSummaryResponse = zod.object({
+  "yasirTotal": zod.number(),
+  "khurramTotal": zod.number(),
+  "combinedTotal": zod.number(),
+  "accountantCashBalance": zod.number()
+})
+
+
+/**
+ * @summary List petty cash given records with filters and pagination
+ */
+export const ListPettyCashGivenQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search by receipt number or description'),
+  "partnerId": zod.coerce.number().optional().describe('Filter by partner ID'),
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)'),
+  "page": zod.coerce.number().optional().describe('Page number (1-based)'),
+  "pageSize": zod.coerce.number().optional().describe('Rows per page (25, 50, 100)'),
+  "sortDir": zod.enum(['asc', 'desc']).optional().describe('Sort direction by date')
+})
+
+export const ListPettyCashGivenResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number(),
+  "summary": zod.object({
+  "yasirTotal": zod.number(),
+  "khurramTotal": zod.number(),
+  "combinedTotal": zod.number(),
+  "accountantCashBalance": zod.number()
+})
+})
+
+
+/**
+ * @summary Create a new petty cash given record
+ */
+export const CreatePettyCashGivenBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "amount": zod.number()
+})
+
+export const CreatePettyCashGivenResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update an existing petty cash given record
+ */
+export const UpdatePettyCashGivenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdatePettyCashGivenBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "amount": zod.number()
+})
+
+export const UpdatePettyCashGivenResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a petty cash given record
+ */
+export const DeletePettyCashGivenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeletePettyCashGivenResponse = zod.void()
+
+
