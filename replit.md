@@ -1,6 +1,6 @@
-# [Project name]
+# Ledger Accounting Software
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Professional desktop-style accounting application for Crown King, tracking partner investments, expenses, petty cash, joint income, and settlement summaries.
 
 ## Run & Operate
 

@@ -1,0 +1,67 @@
+We are now starting the actual development of the Ledger Accounting Software.
+
+First, inspect the existing project and continue from the current codebase. Do not rebuild or delete working parts unnecessarily.
+
+Build the first working version of the application with these requirements:
+
+1. Make sure the application runs correctly in Replit Preview.
+
+2. Create a professional desktop-style accounting software interface.
+
+3. Application name: Ledger Accounting Software.
+
+4. Company name shown inside the application: Crown King.
+
+5. Create a left sidebar with these navigation items:
+   - Dashboard
+   - Partner Investments
+   - Partner Direct Expenses
+   - Petty Cash Given
+   - Accountant Expenses
+   - Joint Company Income
+   - Final Summary & Settlement
+   - Excel Data Import
+   - Reports
+   - Backup & Restore
+   - Settings
+
+6. Create a professional top header showing:
+   - Ledger Accounting Software
+   - Crown King
+   - Current date
+
+7. Build the Dashboard UI with summary cards:
+   - Total Investments
+   - Total Direct Expenses
+   - Total Petty Cash Given
+   - Total Accountant Expenses
+   - Total Joint Company Income
+   - Accountant Cash Balance
+
+8. Add a Partner Overview section:
+   - Yasir — 42.5%
+   - Khurram — 57.5%
+
+9. Create a clean professional empty state for each module page so that every sidebar item opens its own page without broken routes.
+
+10. Use a modern professional business software design. Keep it simple, clean and practical. Do not add unnecessary animations or generic AI-looking design.
+
+11. IMPORTANT:
+The final software must eventually work completely offline on Windows and be packaged as an .exe using Electron with a local SQLite database. Keep the current architecture compatible with this goal.
+
+12. For this step, focus ONLY on:
+   - Working Replit Preview
+   - Main application layout
+   - Sidebar navigation
+   - Dashboard
+   - All page routes
+
+Do NOT implement the accounting calculations, settlement logic, Excel import logic, or complex database functionality yet.
+
+After completing this step:
+- Run and verify the application.
+- Fix any TypeScript or runtime errors.
+- Make sure the Replit Preview actually displays the application.
+- Make sure all sidebar navigation items work.
+
+Then STOP and report what was completed and whether the Preview is working.

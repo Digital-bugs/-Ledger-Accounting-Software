@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Ledger Accounting Software"
+version = "1.0.0"
+id = "artifacts/ledger"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21356
+
+[services.development]
+run = "pnpm --filter @workspace/ledger run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ledger", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ledger/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21356"
+BASE_PATH = "/"
