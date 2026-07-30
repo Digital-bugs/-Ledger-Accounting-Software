@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Route, Switch, Router as WouterRouter } from "wouter";
 import { Dashboard } from "@/pages/Dashboard";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Backup } from "@/pages/Backup";
 import { 
   Landmark, 
   ReceiptText, 
@@ -64,9 +65,7 @@ function Router() {
         <Route path="/reports">
           <PageWrapper title="Reports" icon={PieChart} description="No generated reports. Use this module to export P&L and balance sheets." buttonText="Generate Report" />
         </Route>
-        <Route path="/backup">
-          <PageWrapper title="Backup & Restore" icon={Database} description="Manage your database backups. Regular backups ensure your financial data is secure." buttonText="Create Backup" />
-        </Route>
+        <Route path="/backup" component={Backup} />
         <Route path="/settings">
           <PageWrapper title="Settings" icon={Settings} description="Configure application preferences, partner details, and system defaults." buttonText="Edit Settings" />
         </Route>

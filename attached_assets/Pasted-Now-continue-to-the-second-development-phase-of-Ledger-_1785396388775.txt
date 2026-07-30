@@ -1,0 +1,141 @@
+Now continue to the second development phase of Ledger Accounting Software.
+
+First inspect what has already been built in the current project. Do not rebuild or delete working UI or navigation.
+
+Your task in this phase is to build the SAFE LOCAL DATA FOUNDATION.
+
+Requirements:
+
+1. Add a local SQLite database for the Ledger Accounting Software.
+
+2. The application must be designed as OFFLINE-FIRST:
+   - Normal accounting operations must work without internet.
+   - Do not depend on cloud servers or online APIs.
+   - The final Windows version must store financial data locally on the user's PC.
+
+3. IMPORTANT DATA SAFETY REQUIREMENT:
+   Client financial data must NEVER disappear because of:
+   - Application crash
+   - Computer restart
+   - Closing the application
+   - Reopening the application
+   - Normal application updates
+
+4. Use reliable database transactions so that incomplete or interrupted writes do not corrupt financial records.
+
+5. Enable SQLite WAL mode or another reliable crash-safe configuration.
+
+6. Create automatic database initialization and migration handling so the database is safely created when the application starts.
+
+7. Create these database tables only for the current project requirements:
+
+   partners
+   - id
+   - name
+   - share_percentage
+
+   investments
+   - id
+   - receipt_number
+   - entry_date
+   - description
+   - partner_id
+   - amount
+   - created_at
+
+   direct_expenses
+   - id
+   - receipt_number
+   - entry_date
+   - description
+   - partner_id
+   - amount
+   - created_at
+
+   petty_cash_given
+   - id
+   - receipt_number
+   - entry_date
+   - description
+   - partner_id
+   - amount
+   - created_at
+
+   petty_cash_spent
+   - id
+   - receipt_number
+   - entry_date
+   - description
+   - amount
+   - created_at
+
+   joint_incomes
+   - id
+   - receipt_number
+   - entry_date
+   - description
+   - income_type
+   - amount
+   - created_at
+
+8. Add the two fixed partners:
+   - Yasir — 42.5%
+   - Khurram — 57.5%
+
+9. IMPORTANT BUSINESS RULE:
+   Do NOT apply 42.5% or 57.5% automatically when entering any transaction.
+   Every transaction must be saved using its actual full amount.
+   Percentage calculations will only happen later on the Final Summary & Settlement screen.
+
+10. Add a proper local backup and restore foundation.
+
+   The application should eventually allow the user to:
+   - Create a manual backup of all financial data.
+   - Restore data from a backup.
+   - Keep backup files separate from the live database.
+   - Never overwrite the current database without confirmation.
+
+11. Add a safe automatic backup mechanism if practical, but do not make the application complicated.
+   At minimum, create the architecture needed for reliable manual backup and restore.
+
+12. Keep the database layer separate from the UI so that the existing React Preview continues working.
+
+13. Keep the project compatible with the final production architecture:
+   React + TypeScript UI
+   Electron desktop application
+   Local SQLite database
+   Windows .exe installer
+
+14. Do NOT implement the full accounting modules yet.
+
+15. Do NOT implement Final Summary calculations yet.
+
+16. Do NOT implement Excel import yet.
+
+17. Do NOT add unnecessary ERP features such as:
+   - Payroll
+   - Inventory
+   - Tax
+   - GST/VAT
+   - Debit/Credit accounting
+   - Multi-company
+   - Cloud sync
+
+After completing this phase:
+
+- Run the application.
+- Verify the database initializes correctly.
+- Verify data can be written and read successfully.
+- Verify the application can restart without losing saved data.
+- Verify the existing Replit Preview still works.
+- Fix all TypeScript and runtime errors.
+
+Then STOP and report:
+1. Which database technology was implemented.
+2. Where the local database is stored.
+3. How data persistence is handled.
+4. How crash safety is handled.
+5. How backup/restore is currently structured.
+6. Whether the Replit Preview is still working.
+
+Do not proceed to the next accounting module until this phase is complete and verified.

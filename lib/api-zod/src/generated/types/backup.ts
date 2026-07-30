@@ -6,7 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './backup';
-export * from './dashboardSummary';
-export * from './healthStatus';
-export * from './partner';
+export interface Backup {
+  filename: string;
+  createdAt: string;
+  sizeBytes: number;
+}

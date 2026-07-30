@@ -3,6 +3,8 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+// Initialize SQLite database on startup (creates tables + seeds partners)
+import "./lib/database";
 
 const app: Express = express();
 

@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: partners
+    description: Partner management
+  - name: dashboard
+    description: Dashboard summary
+  - name: backup
+    description: Backup and restore
 paths:
   /healthz:
     get:
@@ -24,6 +30,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /partners:
+    get:
+      operationId: listPartners
+      tags: [partners]
+      summary: List all partners
+      responses:
+        "200":
+          description: List of partners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Partner"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard financial summary totals
+      responses:
+        "200":
+          description: Dashboard summary with all totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /backup:
+    get:
+      operationId: listBackups
+      tags: [backup]
+      summary: List available database backups
+      responses:
+        "200":
+          description: List of backups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Backup"
+    post:
+      operationId: createBackup
+      tags: [backup]
+      summary: Create a new database backup
+      responses:
+        "201":
+          description: Backup created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Backup"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +95,52 @@ components:
       required:
         - status
 
+    Partner:
+      type: object
+      required: [id, name, sharePercentage]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        sharePercentage:
+          type: number
+
+    DashboardSummary:
+      type: object
+      required:
+        - totalInvestments
+        - totalDirectExpenses
+        - totalPettyCashGiven
+        - totalAccountantExpenses
+        - totalJointIncome
+        - accountantCashBalance
+        - partners
+      properties:
+        totalInvestments:
+          type: number
+        totalDirectExpenses:
+          type: number
+        totalPettyCashGiven:
+          type: number
+        totalAccountantExpenses:
+          type: number
+        totalJointIncome:
+          type: number
+        accountantCashBalance:
+          type: number
+        partners:
+          type: array
+          items:
+            $ref: "#/components/schemas/Partner"
+
+    Backup:
+      type: object
+      required: [filename, createdAt, sizeBytes]
+      properties:
+        filename:
+          type: string
+        createdAt:
+          type: string
+        sizeBytes:
+          type: number

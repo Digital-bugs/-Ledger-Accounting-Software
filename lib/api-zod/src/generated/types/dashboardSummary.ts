@@ -5,15 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface Partner {
-  id: number;
-  name: string;
-  sharePercentage: number;
-}
+import type { Partner } from './partner';
 
 export interface DashboardSummary {
   totalInvestments: number;
@@ -24,10 +16,3 @@ export interface DashboardSummary {
   accountantCashBalance: number;
   partners: Partner[];
 }
-
-export interface Backup {
-  filename: string;
-  createdAt: string;
-  sizeBytes: number;
-}
-

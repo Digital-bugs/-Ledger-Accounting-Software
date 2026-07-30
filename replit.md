@@ -4,21 +4,33 @@ Professional desktop-style accounting application for Crown King, tracking partn
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server
+- `pnpm --filter @workspace/ledger run dev` — run the React frontend (managed by workflow)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Optional env: `SQLITE_DATA_DIR` — override SQLite data directory (default: `artifacts/api-server/data/`)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React 19 + Vite + Tailwind CSS + shadcn/ui + wouter
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- DB: SQLite (better-sqlite3) — offline-first, WAL mode, crash-safe
+- Validation: Zod (v3), Orval-generated schemas
+- API codegen: Orval (from `lib/api-spec/openapi.yaml`)
+- Build: esbuild
+
+## Where things live
+
+- `artifacts/ledger/` — React frontend (all UI pages)
+- `artifacts/ledger/src/pages/` — page components (Dashboard, Backup, etc.)
+- `artifacts/ledger/src/components/layout/AppLayout.tsx` — sidebar + header shell
+- `artifacts/api-server/src/lib/database.ts` — SQLite init, schema, partner seed
+- `artifacts/api-server/src/routes/` — REST API routes (partners, dashboard, backup)
+- `artifacts/api-server/data/ledger.db` — live SQLite database
+- `artifacts/api-server/data/backups/` — manual backup files
+- `lib/api-spec/openapi.yaml` — source of truth for API contract
 
 ## Where things live
 
