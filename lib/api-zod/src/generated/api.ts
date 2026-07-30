@@ -170,3 +170,106 @@ export const DeleteInvestmentParams = zod.object({
 export const DeleteInvestmentResponse = zod.void()
 
 
+/**
+ * @summary Get direct expense totals per partner
+ */
+export const GetDirectExpenseSummaryResponse = zod.object({
+  "yasirTotal": zod.number(),
+  "khurramTotal": zod.number(),
+  "combinedTotal": zod.number()
+})
+
+
+/**
+ * @summary List partner direct expenses with filters and pagination
+ */
+export const ListDirectExpensesQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search by receipt number or description'),
+  "partnerId": zod.coerce.number().optional().describe('Filter by partner ID'),
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)'),
+  "page": zod.coerce.number().optional().describe('Page number (1-based)'),
+  "pageSize": zod.coerce.number().optional().describe('Rows per page (25, 50, 100)'),
+  "sortDir": zod.enum(['asc', 'desc']).optional().describe('Sort direction by date')
+})
+
+export const ListDirectExpensesResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number(),
+  "summary": zod.object({
+  "yasirTotal": zod.number(),
+  "khurramTotal": zod.number(),
+  "combinedTotal": zod.number()
+})
+})
+
+
+/**
+ * @summary Create a new partner direct expense
+ */
+export const CreateDirectExpenseBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "amount": zod.number()
+})
+
+export const CreateDirectExpenseResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update an existing direct expense
+ */
+export const UpdateDirectExpenseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateDirectExpenseBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "amount": zod.number()
+})
+
+export const UpdateDirectExpenseResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "partnerId": zod.number(),
+  "partnerName": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a direct expense
+ */
+export const DeleteDirectExpenseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteDirectExpenseResponse = zod.void()
+
+

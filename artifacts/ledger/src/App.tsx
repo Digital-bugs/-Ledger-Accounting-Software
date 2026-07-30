@@ -7,6 +7,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Backup } from "@/pages/Backup";
 import { PartnerInvestments } from "@/pages/PartnerInvestments";
+import { PartnerDirectExpenses } from "@/pages/PartnerDirectExpenses";
 import { 
   Landmark, 
   ReceiptText, 
@@ -43,9 +44,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/partner-investments" component={PartnerInvestments} />
-        <Route path="/partner-expenses">
-          <PageWrapper title="Partner Direct Expenses" icon={ReceiptText} description="No direct expenses recorded yet. Use this module to log expenses paid directly by partners." />
-        </Route>
+        <Route path="/partner-expenses" component={PartnerDirectExpenses} />
         <Route path="/petty-cash">
           <PageWrapper title="Petty Cash Given" icon={Coins} description="No petty cash records found. Use this module to manage cash disbursements to accountants." />
         </Route>

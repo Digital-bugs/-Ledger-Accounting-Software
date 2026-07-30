@@ -22,11 +22,16 @@ import type {
 import type {
   Backup,
   DashboardSummary,
+  DirectExpense,
+  DirectExpenseBody,
+  DirectExpenseSummary,
+  DirectExpensesPage,
   HealthStatus,
   Investment,
   InvestmentBody,
   InvestmentSummary,
   InvestmentsPage,
+  ListDirectExpensesParams,
   ListInvestmentsParams,
   Partner
 } from './api.schemas';
@@ -811,5 +816,380 @@ export const useDeleteInvestment = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteInvestmentMutationOptions(options));
+    }
+
+export const getGetDirectExpenseSummaryUrl = () => {
+
+
+
+
+  return `/api/direct-expenses/summary`
+}
+
+/**
+ * @summary Get direct expense totals per partner
+ */
+export const getDirectExpenseSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<DirectExpenseSummary> => {
+
+  return customFetch<DirectExpenseSummary>(getGetDirectExpenseSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDirectExpenseSummaryQueryKey = () => {
+    return [
+    `/api/direct-expenses/summary`
+    ] as const;
+    }
+
+
+export const getGetDirectExpenseSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getDirectExpenseSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDirectExpenseSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDirectExpenseSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDirectExpenseSummary>>> = ({ signal }) => getDirectExpenseSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDirectExpenseSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDirectExpenseSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getDirectExpenseSummary>>>
+export type GetDirectExpenseSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get direct expense totals per partner
+ */
+
+export function useGetDirectExpenseSummary<TData = Awaited<ReturnType<typeof getDirectExpenseSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDirectExpenseSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDirectExpenseSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListDirectExpensesUrl = (params?: ListDirectExpensesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/direct-expenses?${stringifiedParams}` : `/api/direct-expenses`
+}
+
+/**
+ * @summary List partner direct expenses with filters and pagination
+ */
+export const listDirectExpenses = async (params?: ListDirectExpensesParams, options?: Parameters<typeof customFetch>[1]): Promise<DirectExpensesPage> => {
+
+  return customFetch<DirectExpensesPage>(getListDirectExpensesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDirectExpensesQueryKey = (params?: ListDirectExpensesParams,) => {
+    return [
+    `/api/direct-expenses`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListDirectExpensesQueryOptions = <TData = Awaited<ReturnType<typeof listDirectExpenses>>, TError = ErrorType<unknown>>(params?: ListDirectExpensesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDirectExpenses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDirectExpensesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDirectExpenses>>> = ({ signal }) => listDirectExpenses(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDirectExpenses>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDirectExpensesQueryResult = NonNullable<Awaited<ReturnType<typeof listDirectExpenses>>>
+export type ListDirectExpensesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List partner direct expenses with filters and pagination
+ */
+
+export function useListDirectExpenses<TData = Awaited<ReturnType<typeof listDirectExpenses>>, TError = ErrorType<unknown>>(
+ params?: ListDirectExpensesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDirectExpenses>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDirectExpensesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateDirectExpenseUrl = () => {
+
+
+
+
+  return `/api/direct-expenses`
+}
+
+/**
+ * @summary Create a new partner direct expense
+ */
+export const createDirectExpense = async (directExpenseBody: DirectExpenseBody, options?: Parameters<typeof customFetch>[1]): Promise<DirectExpense> => {
+
+  return customFetch<DirectExpense>(getCreateDirectExpenseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(directExpenseBody)
+  }
+);}
+
+
+
+
+
+export const getCreateDirectExpenseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDirectExpense>>, TError,{data: BodyType<DirectExpenseBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createDirectExpense>>, TError,{data: BodyType<DirectExpenseBody>}, TContext> => {
+
+const mutationKey = ['createDirectExpense'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDirectExpense>>, {data: BodyType<DirectExpenseBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createDirectExpense(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateDirectExpenseMutationResult = NonNullable<Awaited<ReturnType<typeof createDirectExpense>>>
+    export type CreateDirectExpenseMutationBody = BodyType<DirectExpenseBody>
+    export type CreateDirectExpenseMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new partner direct expense
+ */
+export const useCreateDirectExpense = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createDirectExpense>>, TError,{data: BodyType<DirectExpenseBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createDirectExpense>>,
+        TError,
+        {data: BodyType<DirectExpenseBody>},
+        TContext
+      > => {
+      return useMutation(getCreateDirectExpenseMutationOptions(options));
+    }
+
+export const getUpdateDirectExpenseUrl = (id: number,) => {
+
+
+
+
+  return `/api/direct-expenses/${id}`
+}
+
+/**
+ * @summary Update an existing direct expense
+ */
+export const updateDirectExpense = async (id: number,
+    directExpenseBody: DirectExpenseBody, options?: Parameters<typeof customFetch>[1]): Promise<DirectExpense> => {
+
+  return customFetch<DirectExpense>(getUpdateDirectExpenseUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(directExpenseBody)
+  }
+);}
+
+
+
+
+
+export const getUpdateDirectExpenseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDirectExpense>>, TError,{id: number;data: BodyType<DirectExpenseBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDirectExpense>>, TError,{id: number;data: BodyType<DirectExpenseBody>}, TContext> => {
+
+const mutationKey = ['updateDirectExpense'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDirectExpense>>, {id: number;data: BodyType<DirectExpenseBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateDirectExpense(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDirectExpenseMutationResult = NonNullable<Awaited<ReturnType<typeof updateDirectExpense>>>
+    export type UpdateDirectExpenseMutationBody = BodyType<DirectExpenseBody>
+    export type UpdateDirectExpenseMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an existing direct expense
+ */
+export const useUpdateDirectExpense = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDirectExpense>>, TError,{id: number;data: BodyType<DirectExpenseBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDirectExpense>>,
+        TError,
+        {id: number;data: BodyType<DirectExpenseBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateDirectExpenseMutationOptions(options));
+    }
+
+export const getDeleteDirectExpenseUrl = (id: number,) => {
+
+
+
+
+  return `/api/direct-expenses/${id}`
+}
+
+/**
+ * @summary Delete a direct expense
+ */
+export const deleteDirectExpense = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteDirectExpenseUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteDirectExpenseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDirectExpense>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDirectExpense>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteDirectExpense'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDirectExpense>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteDirectExpense(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDirectExpenseMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDirectExpense>>>
+
+    export type DeleteDirectExpenseMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a direct expense
+ */
+export const useDeleteDirectExpense = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDirectExpense>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDirectExpense>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteDirectExpenseMutationOptions(options));
     }
 

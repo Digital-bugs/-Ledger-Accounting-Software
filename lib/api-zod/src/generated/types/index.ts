@@ -8,11 +8,17 @@
 
 export * from './backup';
 export * from './dashboardSummary';
+export * from './directExpense';
+export * from './directExpenseBody';
+export * from './directExpensesPage';
+export * from './directExpenseSummary';
 export * from './healthStatus';
 export * from './investment';
 export * from './investmentBody';
 export * from './investmentsPage';
 export * from './investmentSummary';
+export * from './listDirectExpensesParams';
+export * from './listDirectExpensesSortDir';
 export * from './listInvestmentsParams';
 export * from './listInvestmentsSortDir';
 export * from './partner';

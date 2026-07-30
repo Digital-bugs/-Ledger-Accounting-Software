@@ -62,6 +62,37 @@ export interface InvestmentBody {
   amount: number;
 }
 
+export interface DirectExpense {
+  id: number;
+  receiptNumber: string;
+  entryDate: string;
+  description: string;
+  partnerId: number;
+  partnerName: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface DirectExpenseSummary {
+  yasirTotal: number;
+  khurramTotal: number;
+  combinedTotal: number;
+}
+
+export interface DirectExpensesPage {
+  data: DirectExpense[];
+  total: number;
+  summary: DirectExpenseSummary;
+}
+
+export interface DirectExpenseBody {
+  receiptNumber: string;
+  entryDate: string;
+  description: string;
+  partnerId: number;
+  amount: number;
+}
+
 export type ListInvestmentsParams = {
 /**
  * Search by receipt number or description
@@ -97,6 +128,45 @@ export type ListInvestmentsSortDir = typeof ListInvestmentsSortDir[keyof typeof 
 
 
 export const ListInvestmentsSortDir = {
+  asc: 'asc',
+  desc: 'desc',
+} as const;
+
+export type ListDirectExpensesParams = {
+/**
+ * Search by receipt number or description
+ */
+search?: string;
+/**
+ * Filter by partner ID
+ */
+partnerId?: number;
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+/**
+ * Page number (1-based)
+ */
+page?: number;
+/**
+ * Rows per page (25, 50, 100)
+ */
+pageSize?: number;
+/**
+ * Sort direction by date
+ */
+sortDir?: ListDirectExpensesSortDir;
+};
+
+export type ListDirectExpensesSortDir = typeof ListDirectExpensesSortDir[keyof typeof ListDirectExpensesSortDir];
+
+
+export const ListDirectExpensesSortDir = {
   asc: 'asc',
   desc: 'desc',
 } as const;
