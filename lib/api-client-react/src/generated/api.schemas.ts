@@ -262,6 +262,32 @@ export interface BulkImportResult {
   errors: ImportRowError[];
 }
 
+export interface MonthlyDataPoint {
+  month: string;
+  investments: number;
+  directExpenses: number;
+  pettyCashGiven: number;
+  accountantExpenses: number;
+  jointIncome: number;
+  totalExpenses: number;
+}
+
+export interface MonthlyReportData {
+  months: MonthlyDataPoint[];
+}
+
+export interface ReportAnalytics {
+  highestMonthlyExpense: number;
+  highestMonthlyIncome: number;
+  totalTransactions: number;
+  avgMonthlyExpense: number;
+  avgMonthlyIncome: number;
+  /** @nullable */
+  highestExpenseMonth: string | null;
+  /** @nullable */
+  highestIncomeMonth: string | null;
+}
+
 export type ListInvestmentsParams = {
 /**
  * Search by receipt number or description
@@ -454,6 +480,28 @@ export const ListJointIncomesSortDir = {
 } as const;
 
 export type GetFinalSummaryParams = {
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+};
+
+export type GetReportsMonthlyDataParams = {
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+};
+
+export type GetReportsAnalyticsParams = {
 /**
  * Filter from date (YYYY-MM-DD)
  */

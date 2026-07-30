@@ -24,6 +24,8 @@ tags:
     description: Petty cash given to accountant
   - name: excel-import
     description: Bulk import from Excel or CSV
+  - name: reports
+    description: Reports and analytics
 paths:
   /healthz:
     get:
@@ -726,6 +728,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/BulkImportResult"
 
+  /reports/monthly-data:
+    get:
+      operationId: getReportsMonthlyData
+      tags: [reports]
+      summary: Get monthly aggregated financial data for charts
+      parameters:
+        - name: dateFrom
+          in: query
+          schema: { type: string }
+          description: Filter from date (YYYY-MM-DD)
+        - name: dateTo
+          in: query
+          schema: { type: string }
+          description: Filter to date (YYYY-MM-DD)
+      responses:
+        "200":
+          description: Monthly aggregated data across all financial categories
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyReportData"
+
+  /reports/analytics:
+    get:
+      operationId: getReportsAnalytics
+      tags: [reports]
+      summary: Get analytics KPI summary
+      parameters:
+        - name: dateFrom
+          in: query
+          schema: { type: string }
+          description: Filter from date (YYYY-MM-DD)
+        - name: dateTo
+          in: query
+          schema: { type: string }
+          description: Filter to date (YYYY-MM-DD)
+      responses:
+        "200":
+          description: Analytics KPI data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportAnalytics"
+
 components:
   schemas:
     HealthStatus:
@@ -1191,3 +1237,36 @@ components:
           type: number
         message:
           type: string
+
+    MonthlyDataPoint:
+      type: object
+      required: [month, investments, directExpenses, pettyCashGiven, accountantExpenses, jointIncome, totalExpenses]
+      properties:
+        month:         { type: string }
+        investments:   { type: number }
+        directExpenses:    { type: number }
+        pettyCashGiven:    { type: number }
+        accountantExpenses: { type: number }
+        jointIncome:   { type: number }
+        totalExpenses: { type: number }
+
+    MonthlyReportData:
+      type: object
+      required: [months]
+      properties:
+        months:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyDataPoint"
+
+    ReportAnalytics:
+      type: object
+      required: [highestMonthlyExpense, highestMonthlyIncome, totalTransactions, avgMonthlyExpense, avgMonthlyIncome, highestExpenseMonth, highestIncomeMonth]
+      properties:
+        highestMonthlyExpense: { type: number }
+        highestMonthlyIncome:  { type: number }
+        totalTransactions:     { type: number }
+        avgMonthlyExpense:     { type: number }
+        avgMonthlyIncome:      { type: number }
+        highestExpenseMonth:   { type: ["string", "null"] }
+        highestIncomeMonth:    { type: ["string", "null"] }

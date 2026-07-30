@@ -13,6 +13,7 @@ import { AccountantExpenses } from "@/pages/AccountantExpenses";
 import { JointCompanyIncome } from "@/pages/JointCompanyIncome";
 import { ExcelImport } from "@/pages/ExcelImport";
 import { FinalSummary } from "@/pages/FinalSummary";
+import { Reports } from "@/pages/Reports";
 import { 
   Landmark, 
   ReceiptText, 
@@ -55,9 +56,7 @@ function Router() {
         <Route path="/joint-income" component={JointCompanyIncome} />
         <Route path="/settlement" component={FinalSummary} />
         <Route path="/excel-import" component={ExcelImport} />
-        <Route path="/reports">
-          <PageWrapper title="Reports" icon={PieChart} description="No generated reports. Use this module to export P&L and balance sheets." buttonText="Generate Report" />
-        </Route>
+        <Route path="/reports" component={Reports} />
         <Route path="/backup" component={Backup} />
         <Route path="/settings">
           <PageWrapper title="Settings" icon={Settings} description="Configure application preferences, partner details, and system defaults." buttonText="Edit Settings" />

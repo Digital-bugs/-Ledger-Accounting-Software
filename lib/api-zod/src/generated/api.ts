@@ -638,3 +638,43 @@ export const BulkImportResponse = zod.object({
 })
 
 
+/**
+ * @summary Get monthly aggregated financial data for charts
+ */
+export const GetReportsMonthlyDataQueryParams = zod.object({
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)')
+})
+
+export const GetReportsMonthlyDataResponse = zod.object({
+  "months": zod.array(zod.object({
+  "month": zod.string(),
+  "investments": zod.number(),
+  "directExpenses": zod.number(),
+  "pettyCashGiven": zod.number(),
+  "accountantExpenses": zod.number(),
+  "jointIncome": zod.number(),
+  "totalExpenses": zod.number()
+}))
+})
+
+
+/**
+ * @summary Get analytics KPI summary
+ */
+export const GetReportsAnalyticsQueryParams = zod.object({
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)')
+})
+
+export const GetReportsAnalyticsResponse = zod.object({
+  "highestMonthlyExpense": zod.number(),
+  "highestMonthlyIncome": zod.number(),
+  "totalTransactions": zod.number(),
+  "avgMonthlyExpense": zod.number(),
+  "avgMonthlyIncome": zod.number(),
+  "highestExpenseMonth": zod.string().nullable(),
+  "highestIncomeMonth": zod.string().nullable()
+})
+
+

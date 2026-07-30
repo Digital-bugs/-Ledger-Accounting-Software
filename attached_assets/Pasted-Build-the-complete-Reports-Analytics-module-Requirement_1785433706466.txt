@@ -1,0 +1,115 @@
+Build the complete "Reports & Analytics" module.
+
+Requirements:
+
+Create a dedicated Reports section.
+
+Reports:
+
+1. Investment Report
+2. Direct Expense Report
+3. Petty Cash Given Report
+4. Accountant Expense Report
+5. Joint Company Income Report
+6. Final Settlement Report
+7. Overall Financial Summary
+
+Each report must support:
+
+- Date Range Filter
+- Month Filter
+- Year Filter
+- Partner Filter (where applicable)
+- Search
+- Sorting
+- Pagination
+
+Summary Cards:
+
+- Total Investment
+- Total Direct Expenses
+- Total Accountant Expenses
+- Total Joint Income
+- Accountant Cash Balance
+- Total Company Expenses
+
+Charts:
+
+Display professional charts using Chart.js.
+
+Include:
+
+- Monthly Expenses Chart
+- Monthly Income Chart
+- Partner Contribution Comparison
+- Investment vs Expense
+- Cash Flow Overview
+
+Export:
+
+Every report must support:
+
+- Print
+- Export PDF
+- Export Excel
+- Export CSV
+
+Printing:
+
+Create professional A4 printable reports.
+
+Include:
+
+- Crown King Company Logo
+- Company Name
+- Report Title
+- Selected Date Range
+- Print Date & Time
+- Page Numbers
+- Grand Totals
+
+Analytics Dashboard:
+
+Show:
+
+- Highest Monthly Expense
+- Highest Monthly Income
+- Total Transactions
+- Average Monthly Expense
+- Average Monthly Income
+
+Business Rules:
+
+- Read all data directly from SQLite.
+- Reports must update automatically after any transaction.
+- Reports are read-only.
+- No manual editing inside Reports.
+
+Performance:
+
+- Fast loading.
+- Handle large databases efficiently.
+- No duplicate calculations.
+
+UI:
+
+Use the same professional accounting software design.
+
+Everything must work completely offline.
+
+Use SQLite only.
+
+Do not use any cloud services.
+
+Run the application after implementation.
+
+Verify:
+
+- Zero TypeScript errors.
+- Zero runtime errors.
+- Print works.
+- PDF Export works.
+- Excel Export works.
+- CSV Export works.
+- Charts update automatically.
+- Reports always show correct totals.

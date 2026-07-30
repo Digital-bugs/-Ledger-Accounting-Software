@@ -34,6 +34,8 @@ import type {
   DirectExpensesPage,
   FinalSummaryResult,
   GetFinalSummaryParams,
+  GetReportsAnalyticsParams,
+  GetReportsMonthlyDataParams,
   HealthStatus,
   Investment,
   InvestmentBody,
@@ -48,11 +50,13 @@ import type {
   ListInvestmentsParams,
   ListJointIncomesParams,
   ListPettyCashGivenParams,
+  MonthlyReportData,
   Partner,
   PettyCashGivenBody,
   PettyCashGivenPage,
   PettyCashGivenRecord,
-  PettyCashGivenSummary
+  PettyCashGivenSummary,
+  ReportAnalytics
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -2491,4 +2495,172 @@ export const useBulkImport = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getBulkImportMutationOptions(options));
     }
+
+export const getGetReportsMonthlyDataUrl = (params?: GetReportsMonthlyDataParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reports/monthly-data?${stringifiedParams}` : `/api/reports/monthly-data`
+}
+
+/**
+ * @summary Get monthly aggregated financial data for charts
+ */
+export const getReportsMonthlyData = async (params?: GetReportsMonthlyDataParams, options?: Parameters<typeof customFetch>[1]): Promise<MonthlyReportData> => {
+
+  return customFetch<MonthlyReportData>(getGetReportsMonthlyDataUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReportsMonthlyDataQueryKey = (params?: GetReportsMonthlyDataParams,) => {
+    return [
+    `/api/reports/monthly-data`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetReportsMonthlyDataQueryOptions = <TData = Awaited<ReturnType<typeof getReportsMonthlyData>>, TError = ErrorType<unknown>>(params?: GetReportsMonthlyDataParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportsMonthlyData>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReportsMonthlyDataQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReportsMonthlyData>>> = ({ signal }) => getReportsMonthlyData(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReportsMonthlyData>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReportsMonthlyDataQueryResult = NonNullable<Awaited<ReturnType<typeof getReportsMonthlyData>>>
+export type GetReportsMonthlyDataQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get monthly aggregated financial data for charts
+ */
+
+export function useGetReportsMonthlyData<TData = Awaited<ReturnType<typeof getReportsMonthlyData>>, TError = ErrorType<unknown>>(
+ params?: GetReportsMonthlyDataParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportsMonthlyData>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReportsMonthlyDataQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetReportsAnalyticsUrl = (params?: GetReportsAnalyticsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reports/analytics?${stringifiedParams}` : `/api/reports/analytics`
+}
+
+/**
+ * @summary Get analytics KPI summary
+ */
+export const getReportsAnalytics = async (params?: GetReportsAnalyticsParams, options?: Parameters<typeof customFetch>[1]): Promise<ReportAnalytics> => {
+
+  return customFetch<ReportAnalytics>(getGetReportsAnalyticsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReportsAnalyticsQueryKey = (params?: GetReportsAnalyticsParams,) => {
+    return [
+    `/api/reports/analytics`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetReportsAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof getReportsAnalytics>>, TError = ErrorType<unknown>>(params?: GetReportsAnalyticsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportsAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReportsAnalyticsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReportsAnalytics>>> = ({ signal }) => getReportsAnalytics(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReportsAnalytics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReportsAnalyticsQueryResult = NonNullable<Awaited<ReturnType<typeof getReportsAnalytics>>>
+export type GetReportsAnalyticsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get analytics KPI summary
+ */
+
+export function useGetReportsAnalytics<TData = Awaited<ReturnType<typeof getReportsAnalytics>>, TError = ErrorType<unknown>>(
+ params?: GetReportsAnalyticsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportsAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReportsAnalyticsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 

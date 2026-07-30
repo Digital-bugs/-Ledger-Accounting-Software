@@ -10,6 +10,7 @@ import accountantExpensesRouter from "./accountant-expenses";
 import jointIncomesRouter from "./joint-incomes";
 import excelImportRouter from "./excel-import";
 import finalSummaryRouter from "./final-summary";
+import reportsRouter from "./reports";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(accountantExpensesRouter);
 router.use(jointIncomesRouter);
 router.use(excelImportRouter);
 router.use(finalSummaryRouter);
+router.use(reportsRouter);
 
 export default router;
