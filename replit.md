@@ -32,17 +32,16 @@ Professional desktop-style accounting application for Crown King, tracking partn
 - `artifacts/api-server/data/backups/` — manual backup files
 - `lib/api-spec/openapi.yaml` — source of truth for API contract
 
-## Where things live
-
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- SQLite (better-sqlite3) is the persistence layer — no external database required; WAL mode + `synchronous=NORMAL` gives crash safety with good write throughput.
+- Partners (Yasir 42.5%, Khurram 57.5%) are seeded once at startup in `artifacts/api-server/src/lib/database.ts` and are not user-editable by design.
+- The `lib/db` Drizzle/PostgreSQL package is present but NOT used by the API server — the API uses better-sqlite3 directly. `lib/db` can be ignored unless migrating to Postgres.
+- Node.js 24 is required — better-sqlite3 v13 uses NAPI 10 and segfaults silently on Node.js 20.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Crown King accounting app with modules for: Partner Investments, Partner Direct Expenses, Petty Cash Given, Accountant Expenses, Joint Company Income, Excel/CSV bulk import, Reports, Final Summary & Settlement, Backup & Restore, and a Dashboard summarising all financial totals.
 
 ## User preferences
 
@@ -50,7 +49,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- **Node.js 24 required** — better-sqlite3 v13 segfaults silently on Node.js 20. Always use `nodejs-24` module.
+- The CSS theme (`artifacts/ledger/src/index.css`) still has all colour tokens set to `red` (placeholder). The app works but will look broken until real HSL values are filled in.
+- Run `pnpm --filter @workspace/api-spec run codegen` after any change to `lib/api-spec/openapi.yaml` before using the updated hooks.
 
 ## Pointers
 
