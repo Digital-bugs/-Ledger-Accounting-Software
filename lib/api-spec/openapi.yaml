@@ -95,6 +95,83 @@ paths:
               schema:
                 $ref: "#/components/schemas/Backup"
 
+  /backup/health:
+    get:
+      operationId: getBackupHealth
+      tags: [backup]
+      summary: Run SQLite integrity and foreign-key checks
+      responses:
+        "200":
+          description: Database health result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupHealth"
+
+  /backup/settings:
+    get:
+      operationId: getBackupSettings
+      tags: [backup]
+      summary: Get backup settings
+      responses:
+        "200":
+          description: Current backup settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupSettings"
+    put:
+      operationId: updateBackupSettings
+      tags: [backup]
+      summary: Update backup settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BackupSettingsInput"
+      responses:
+        "200":
+          description: Updated backup settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupSettings"
+
+  /backup/restore:
+    post:
+      operationId: restoreBackup
+      tags: [backup]
+      summary: Restore database from a backup file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestoreInput"
+      responses:
+        "200":
+          description: Restore result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestoreResult"
+
+  /backup/{filename}:
+    delete:
+      operationId: deleteBackup
+      tags: [backup]
+      summary: Delete a backup file
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Backup deleted
+
   /investments/summary:
     get:
       operationId: getInvestmentSummary
@@ -1270,3 +1347,68 @@ components:
         avgMonthlyIncome:      { type: number }
         highestExpenseMonth:   { type: ["string", "null"] }
         highestIncomeMonth:    { type: ["string", "null"] }
+
+    BackupHealth:
+      type: object
+      required: [status, integrity, foreignKeys, checks]
+      properties:
+        status:
+          type: string
+          enum: [healthy, error]
+        integrity:
+          type: boolean
+        foreignKeys:
+          type: boolean
+        checks:
+          type: array
+          items:
+            type: object
+            required: [name, passed, message]
+            properties:
+              name:    { type: string }
+              passed:  { type: boolean }
+              message: { type: string }
+
+    BackupSettings:
+      type: object
+      required: [autoBackupEnabled, autoBackupSchedule, backupFolder, maxBackupHistory]
+      properties:
+        autoBackupEnabled:
+          type: boolean
+        autoBackupSchedule:
+          type: string
+          enum: [startup, daily, weekly, monthly]
+        backupFolder:
+          type: string
+        maxBackupHistory:
+          type: ["number", "null"]
+
+    BackupSettingsInput:
+      type: object
+      required: [autoBackupEnabled, autoBackupSchedule, backupFolder, maxBackupHistory]
+      properties:
+        autoBackupEnabled:
+          type: boolean
+        autoBackupSchedule:
+          type: string
+          enum: [startup, daily, weekly, monthly]
+        backupFolder:
+          type: string
+        maxBackupHistory:
+          type: ["number", "null"]
+
+    RestoreInput:
+      type: object
+      required: [filename]
+      properties:
+        filename:
+          type: string
+
+    RestoreResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string

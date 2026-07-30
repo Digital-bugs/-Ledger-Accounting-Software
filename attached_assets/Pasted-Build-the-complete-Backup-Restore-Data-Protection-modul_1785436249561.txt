@@ -1,0 +1,148 @@
+Build the complete "Backup, Restore & Data Protection" module.
+
+This module is responsible for protecting all accounting data.
+
+Requirements:
+
+Create a dedicated Backup & Restore page.
+
+Features:
+
+1. Manual Backup
+2. Automatic Backup
+3. Restore Backup
+4. Database Health Check
+5. Auto Save
+6. Crash Recovery
+7. Data Integrity Verification
+
+Manual Backup
+
+- Backup entire SQLite database.
+- User chooses backup location.
+- Backup file name should include:
+
+Ledger_Accounting_Backup_YYYY-MM-DD_HH-MM.db
+
+Automatic Backup
+
+Allow user to enable or disable automatic backup.
+
+Options:
+
+- Every Startup
+- Daily
+- Weekly
+- Monthly
+
+Allow selecting backup folder.
+
+Restore
+
+Allow selecting a previous backup file.
+
+Before restoring:
+
+Show confirmation:
+
+"Current database will be replaced."
+
+Restore safely.
+
+Restart application automatically after successful restore.
+
+Database Health Check
+
+Add a button:
+
+Check Database Integrity
+
+Verify:
+
+- SQLite database is valid.
+- No corrupted records.
+- No broken tables.
+- No missing relationships.
+
+Display:
+
+Database Healthy
+
+OR
+
+Database Error Detected
+
+Auto Save
+
+Every Add/Edit/Delete operation must be saved immediately.
+
+Never require manual Save.
+
+Crash Recovery
+
+If application closes unexpectedly:
+
+Recover automatically on next startup.
+
+Never lose committed transactions.
+
+Data Protection
+
+Prevent accidental deletion.
+
+Before deleting any record:
+
+Show confirmation dialog.
+
+Prevent duplicate database creation.
+
+Always verify SQLite write success.
+
+Settings
+
+Allow user to configure:
+
+- Backup folder
+- Auto Backup schedule
+- Maximum backup history (5 / 10 / 20 / Unlimited)
+
+Backup History
+
+Display:
+
+- Backup Name
+- Date
+- Size
+- Restore Button
+- Delete Backup
+
+Business Rules
+
+Never delete user data automatically.
+
+Never overwrite backups without confirmation.
+
+Never allow database corruption.
+
+Performance
+
+Large databases must back up quickly.
+
+Everything must work completely offline.
+
+SQLite only.
+
+No cloud storage.
+
+Run the application.
+
+Verify:
+
+- Zero TypeScript errors.
+- Zero runtime errors.
+- Backup works.
+- Restore works.
+- Auto Backup works.
+- Crash Recovery works.
+- Database Integrity Check works.
+- No data is lost after restart.

@@ -5,6 +5,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 // Initialize SQLite database on startup (creates tables + seeds partners)
 import "./lib/database";
+import { initBackupScheduler } from "./routes/backup";
 
 const app: Express = express();
 
@@ -32,5 +33,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+// Start auto-backup scheduler (reads persisted settings)
+initBackupScheduler();
 
 export default app;

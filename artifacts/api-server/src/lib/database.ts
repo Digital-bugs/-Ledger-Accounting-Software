@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { logger } from "./logger";
 
 // Data directory — defaults to <cwd>/data, overridable via env for Electron packaging
-const DATA_DIR = process.env.SQLITE_DATA_DIR
+export const DATA_DIR = process.env.SQLITE_DATA_DIR
   ? path.resolve(process.env.SQLITE_DATA_DIR)
   : path.resolve(process.cwd(), "data");
 

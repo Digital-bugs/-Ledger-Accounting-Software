@@ -68,6 +68,73 @@ export const CreateBackupResponse = zod.object({
 
 
 /**
+ * @summary Run SQLite integrity and foreign-key checks
+ */
+export const GetBackupHealthResponse = zod.object({
+  "status": zod.enum(['healthy', 'error']),
+  "integrity": zod.boolean(),
+  "foreignKeys": zod.boolean(),
+  "checks": zod.array(zod.object({
+  "name": zod.string(),
+  "passed": zod.boolean(),
+  "message": zod.string()
+}))
+})
+
+
+/**
+ * @summary Get backup settings
+ */
+export const GetBackupSettingsResponse = zod.object({
+  "autoBackupEnabled": zod.boolean(),
+  "autoBackupSchedule": zod.enum(['startup', 'daily', 'weekly', 'monthly']),
+  "backupFolder": zod.string(),
+  "maxBackupHistory": zod.number().nullable()
+})
+
+
+/**
+ * @summary Update backup settings
+ */
+export const UpdateBackupSettingsBody = zod.object({
+  "autoBackupEnabled": zod.boolean(),
+  "autoBackupSchedule": zod.enum(['startup', 'daily', 'weekly', 'monthly']),
+  "backupFolder": zod.string(),
+  "maxBackupHistory": zod.number().nullable()
+})
+
+export const UpdateBackupSettingsResponse = zod.object({
+  "autoBackupEnabled": zod.boolean(),
+  "autoBackupSchedule": zod.enum(['startup', 'daily', 'weekly', 'monthly']),
+  "backupFolder": zod.string(),
+  "maxBackupHistory": zod.number().nullable()
+})
+
+
+/**
+ * @summary Restore database from a backup file
+ */
+export const RestoreBackupBody = zod.object({
+  "filename": zod.string()
+})
+
+export const RestoreBackupResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Delete a backup file
+ */
+export const DeleteBackupParams = zod.object({
+  "filename": zod.coerce.string()
+})
+
+export const DeleteBackupResponse = zod.void()
+
+
+/**
  * @summary Get investment totals per partner
  */
 export const GetInvestmentSummaryResponse = zod.object({

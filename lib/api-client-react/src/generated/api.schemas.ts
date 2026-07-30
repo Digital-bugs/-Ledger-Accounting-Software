@@ -288,6 +288,72 @@ export interface ReportAnalytics {
   highestIncomeMonth: string | null;
 }
 
+export type BackupHealthStatus = typeof BackupHealthStatus[keyof typeof BackupHealthStatus];
+
+
+export const BackupHealthStatus = {
+  healthy: 'healthy',
+  error: 'error',
+} as const;
+
+export type BackupHealthChecksItem = {
+  name: string;
+  passed: boolean;
+  message: string;
+};
+
+export interface BackupHealth {
+  status: BackupHealthStatus;
+  integrity: boolean;
+  foreignKeys: boolean;
+  checks: BackupHealthChecksItem[];
+}
+
+export type BackupSettingsAutoBackupSchedule = typeof BackupSettingsAutoBackupSchedule[keyof typeof BackupSettingsAutoBackupSchedule];
+
+
+export const BackupSettingsAutoBackupSchedule = {
+  startup: 'startup',
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
+
+export interface BackupSettings {
+  autoBackupEnabled: boolean;
+  autoBackupSchedule: BackupSettingsAutoBackupSchedule;
+  backupFolder: string;
+  /** @nullable */
+  maxBackupHistory: number | null;
+}
+
+export type BackupSettingsInputAutoBackupSchedule = typeof BackupSettingsInputAutoBackupSchedule[keyof typeof BackupSettingsInputAutoBackupSchedule];
+
+
+export const BackupSettingsInputAutoBackupSchedule = {
+  startup: 'startup',
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
+
+export interface BackupSettingsInput {
+  autoBackupEnabled: boolean;
+  autoBackupSchedule: BackupSettingsInputAutoBackupSchedule;
+  backupFolder: string;
+  /** @nullable */
+  maxBackupHistory: number | null;
+}
+
+export interface RestoreInput {
+  filename: string;
+}
+
+export interface RestoreResult {
+  success: boolean;
+  message: string;
+}
+
 export type ListInvestmentsParams = {
 /**
  * Search by receipt number or description
