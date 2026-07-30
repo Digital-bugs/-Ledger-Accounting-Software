@@ -378,3 +378,97 @@ export const DeletePettyCashGivenParams = zod.object({
 export const DeletePettyCashGivenResponse = zod.void()
 
 
+/**
+ * @summary Get accountant expense summary with cash balance
+ */
+export const GetAccountantExpenseSummaryResponse = zod.object({
+  "totalExpenses": zod.number(),
+  "totalPettyCashReceived": zod.number(),
+  "accountantCashBalance": zod.number()
+})
+
+
+/**
+ * @summary List accountant expenses with filters and pagination
+ */
+export const ListAccountantExpensesQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search by receipt number or description'),
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)'),
+  "page": zod.coerce.number().optional().describe('Page number (1-based)'),
+  "pageSize": zod.coerce.number().optional().describe('Rows per page (25, 50, 100)'),
+  "sortDir": zod.enum(['asc', 'desc']).optional().describe('Sort direction by date')
+})
+
+export const ListAccountantExpensesResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})),
+  "total": zod.number(),
+  "summary": zod.object({
+  "totalExpenses": zod.number(),
+  "totalPettyCashReceived": zod.number(),
+  "accountantCashBalance": zod.number()
+})
+})
+
+
+/**
+ * @summary Create a new accountant expense
+ */
+export const CreateAccountantExpenseBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string().optional(),
+  "amount": zod.number()
+})
+
+export const CreateAccountantExpenseResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update an existing accountant expense
+ */
+export const UpdateAccountantExpenseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAccountantExpenseBody = zod.object({
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string().optional(),
+  "amount": zod.number()
+})
+
+export const UpdateAccountantExpenseResponse = zod.object({
+  "id": zod.number(),
+  "receiptNumber": zod.string(),
+  "entryDate": zod.string(),
+  "description": zod.string(),
+  "amount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete an accountant expense
+ */
+export const DeleteAccountantExpenseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteAccountantExpenseResponse = zod.void()
+
+

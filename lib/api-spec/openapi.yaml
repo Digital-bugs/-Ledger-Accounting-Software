@@ -448,6 +448,120 @@ paths:
         "204":
           description: Record deleted
 
+  /accountant-expenses/summary:
+    get:
+      operationId: getAccountantExpenseSummary
+      tags: [accountant-expenses]
+      summary: Get accountant expense summary with cash balance
+      responses:
+        "200":
+          description: Accountant expense summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountantExpenseSummary"
+
+  /accountant-expenses:
+    get:
+      operationId: listAccountantExpenses
+      tags: [accountant-expenses]
+      summary: List accountant expenses with filters and pagination
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by receipt number or description
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+          description: Filter from date (YYYY-MM-DD)
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+          description: Filter to date (YYYY-MM-DD)
+        - name: page
+          in: query
+          schema:
+            type: number
+          description: Page number (1-based)
+        - name: pageSize
+          in: query
+          schema:
+            type: number
+          description: Rows per page (25, 50, 100)
+        - name: sortDir
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort direction by date
+      responses:
+        "200":
+          description: Paginated list of accountant expenses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountantExpensesPage"
+
+    post:
+      operationId: createAccountantExpense
+      tags: [accountant-expenses]
+      summary: Create a new accountant expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountantExpenseBody"
+      responses:
+        "201":
+          description: Expense created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountantExpense"
+
+  /accountant-expenses/{id}:
+    put:
+      operationId: updateAccountantExpense
+      tags: [accountant-expenses]
+      summary: Update an existing accountant expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountantExpenseBody"
+      responses:
+        "200":
+          description: Expense updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountantExpense"
+    delete:
+      operationId: deleteAccountantExpense
+      tags: [accountant-expenses]
+      summary: Delete an accountant expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Expense deleted
+
 components:
   schemas:
     HealthStatus:
@@ -687,5 +801,59 @@ components:
           type: string
         partnerId:
           type: number
+        amount:
+          type: number
+
+    AccountantExpense:
+      type: object
+      required: [id, receiptNumber, entryDate, description, amount, createdAt]
+      properties:
+        id:
+          type: number
+        receiptNumber:
+          type: string
+        entryDate:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        createdAt:
+          type: string
+
+    AccountantExpenseSummary:
+      type: object
+      required: [totalExpenses, totalPettyCashReceived, accountantCashBalance]
+      properties:
+        totalExpenses:
+          type: number
+        totalPettyCashReceived:
+          type: number
+        accountantCashBalance:
+          type: number
+
+    AccountantExpensesPage:
+      type: object
+      required: [data, total, summary]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountantExpense"
+        total:
+          type: number
+        summary:
+          $ref: "#/components/schemas/AccountantExpenseSummary"
+
+    AccountantExpenseBody:
+      type: object
+      required: [receiptNumber, entryDate, amount]
+      properties:
+        receiptNumber:
+          type: string
+        entryDate:
+          type: string
+        description:
+          type: string
         amount:
           type: number

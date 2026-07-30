@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accountantExpense';
+export * from './accountantExpenseBody';
+export * from './accountantExpensesPage';
+export * from './accountantExpenseSummary';
 export * from './backup';
 export * from './dashboardSummary';
 export * from './directExpense';
@@ -17,6 +21,8 @@ export * from './investment';
 export * from './investmentBody';
 export * from './investmentsPage';
 export * from './investmentSummary';
+export * from './listAccountantExpensesParams';
+export * from './listAccountantExpensesSortDir';
 export * from './listDirectExpensesParams';
 export * from './listDirectExpensesSortDir';
 export * from './listInvestmentsParams';

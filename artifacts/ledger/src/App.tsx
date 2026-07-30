@@ -9,6 +9,7 @@ import { Backup } from "@/pages/Backup";
 import { PartnerInvestments } from "@/pages/PartnerInvestments";
 import { PartnerDirectExpenses } from "@/pages/PartnerDirectExpenses";
 import { PettyCashGiven } from "@/pages/PettyCashGiven";
+import { AccountantExpenses } from "@/pages/AccountantExpenses";
 import { 
   Landmark, 
   ReceiptText, 
@@ -47,9 +48,7 @@ function Router() {
         <Route path="/partner-investments" component={PartnerInvestments} />
         <Route path="/partner-expenses" component={PartnerDirectExpenses} />
         <Route path="/petty-cash" component={PettyCashGiven} />
-        <Route path="/accountant-expenses">
-          <PageWrapper title="Accountant Expenses" icon={Calculator} description="No accountant expenses recorded yet. Use this module to log daily business expenses." />
-        </Route>
+        <Route path="/accountant-expenses" component={AccountantExpenses} />
         <Route path="/joint-income">
           <PageWrapper title="Joint Company Income" icon={Briefcase} description="No income recorded yet. Use this module to track revenue for the joint venture." />
         </Route>

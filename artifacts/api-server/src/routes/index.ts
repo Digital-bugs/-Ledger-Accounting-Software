@@ -6,6 +6,7 @@ import backupRouter from "./backup";
 import investmentsRouter from "./investments";
 import directExpensesRouter from "./direct-expenses";
 import pettyCashGivenRouter from "./petty-cash-given";
+import accountantExpensesRouter from "./accountant-expenses";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(backupRouter);
 router.use(investmentsRouter);
 router.use(directExpensesRouter);
 router.use(pettyCashGivenRouter);
+router.use(accountantExpensesRouter);
 
 export default router;

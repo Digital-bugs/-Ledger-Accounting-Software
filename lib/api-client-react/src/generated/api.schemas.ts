@@ -125,6 +125,34 @@ export interface PettyCashGivenBody {
   amount: number;
 }
 
+export interface AccountantExpense {
+  id: number;
+  receiptNumber: string;
+  entryDate: string;
+  description: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AccountantExpenseSummary {
+  totalExpenses: number;
+  totalPettyCashReceived: number;
+  accountantCashBalance: number;
+}
+
+export interface AccountantExpensesPage {
+  data: AccountantExpense[];
+  total: number;
+  summary: AccountantExpenseSummary;
+}
+
+export interface AccountantExpenseBody {
+  receiptNumber: string;
+  entryDate: string;
+  description?: string;
+  amount: number;
+}
+
 export type ListInvestmentsParams = {
 /**
  * Search by receipt number or description
@@ -238,6 +266,41 @@ export type ListPettyCashGivenSortDir = typeof ListPettyCashGivenSortDir[keyof t
 
 
 export const ListPettyCashGivenSortDir = {
+  asc: 'asc',
+  desc: 'desc',
+} as const;
+
+export type ListAccountantExpensesParams = {
+/**
+ * Search by receipt number or description
+ */
+search?: string;
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+/**
+ * Page number (1-based)
+ */
+page?: number;
+/**
+ * Rows per page (25, 50, 100)
+ */
+pageSize?: number;
+/**
+ * Sort direction by date
+ */
+sortDir?: ListAccountantExpensesSortDir;
+};
+
+export type ListAccountantExpensesSortDir = typeof ListAccountantExpensesSortDir[keyof typeof ListAccountantExpensesSortDir];
+
+
+export const ListAccountantExpensesSortDir = {
   asc: 'asc',
   desc: 'desc',
 } as const;
