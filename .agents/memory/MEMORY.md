@@ -1,0 +1,1 @@
+- [Node.js version requirement](nodejs-version.md) — better-sqlite3 v13 requires NAPI 10 (Node.js 22+); this project needs nodejs-24 module.
