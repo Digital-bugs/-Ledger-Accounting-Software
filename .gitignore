@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# SQLite WAL/SHM journal files (transient, should not be committed)
+*.db-wal
+*.db-shm
