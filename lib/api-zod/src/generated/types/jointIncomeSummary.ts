@@ -7,9 +7,5 @@
  */
 
 export interface JointIncomeSummary {
-  rentTotal: number;
-  officeSaleTotal: number;
-  flatSaleTotal: number;
-  otherTotal: number;
   combinedTotal: number;
 }

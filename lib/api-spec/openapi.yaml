@@ -667,11 +667,6 @@ paths:
           schema:
             type: string
           description: Search by receipt number or description
-        - name: incomeType
-          in: query
-          schema:
-            type: string
-          description: Filter by income type (Rent, Office Sale, Flat Sale, Other)
         - name: dateFrom
           in: query
           schema:
@@ -1147,7 +1142,7 @@ components:
 
     JointIncome:
       type: object
-      required: [id, receiptNumber, entryDate, description, incomeType, amount, createdAt]
+      required: [id, receiptNumber, entryDate, description, incomeSource, amount, createdAt]
       properties:
         id:
           type: number
@@ -1157,7 +1152,7 @@ components:
           type: string
         description:
           type: string
-        incomeType:
+        incomeSource:
           type: string
         amount:
           type: number
@@ -1166,16 +1161,8 @@ components:
 
     JointIncomeSummary:
       type: object
-      required: [rentTotal, officeSaleTotal, flatSaleTotal, otherTotal, combinedTotal]
+      required: [combinedTotal]
       properties:
-        rentTotal:
-          type: number
-        officeSaleTotal:
-          type: number
-        flatSaleTotal:
-          type: number
-        otherTotal:
-          type: number
         combinedTotal:
           type: number
 
@@ -1194,7 +1181,7 @@ components:
 
     JointIncomeInput:
       type: object
-      required: [receiptNumber, entryDate, incomeType, amount]
+      required: [receiptNumber, entryDate, incomeSource, amount]
       properties:
         receiptNumber:
           type: string
@@ -1202,7 +1189,7 @@ components:
           type: string
         description:
           type: string
-        incomeType:
+        incomeSource:
           type: string
         amount:
           type: number

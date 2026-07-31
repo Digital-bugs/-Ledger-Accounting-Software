@@ -540,13 +540,9 @@ export const DeleteAccountantExpenseResponse = zod.void()
 
 
 /**
- * @summary Get joint income totals by income type
+ * @summary Get joint income totals
  */
 export const GetJointIncomeSummaryResponse = zod.object({
-  "rentTotal": zod.number(),
-  "officeSaleTotal": zod.number(),
-  "flatSaleTotal": zod.number(),
-  "otherTotal": zod.number(),
   "combinedTotal": zod.number()
 })
 
@@ -556,7 +552,6 @@ export const GetJointIncomeSummaryResponse = zod.object({
  */
 export const ListJointIncomesQueryParams = zod.object({
   "search": zod.coerce.string().optional().describe('Search by receipt number or description'),
-  "incomeType": zod.coerce.string().optional().describe('Filter by income type (Rent, Office Sale, Flat Sale, Other)'),
   "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
   "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)'),
   "page": zod.coerce.number().optional().describe('Page number (1-based)'),
@@ -570,16 +565,12 @@ export const ListJointIncomesResponse = zod.object({
   "receiptNumber": zod.string(),
   "entryDate": zod.string(),
   "description": zod.string(),
-  "incomeType": zod.string(),
+  "incomeSource": zod.string(),
   "amount": zod.number(),
   "createdAt": zod.string()
 })),
   "total": zod.number(),
   "summary": zod.object({
-  "rentTotal": zod.number(),
-  "officeSaleTotal": zod.number(),
-  "flatSaleTotal": zod.number(),
-  "otherTotal": zod.number(),
   "combinedTotal": zod.number()
 })
 })
@@ -592,7 +583,7 @@ export const CreateJointIncomeBody = zod.object({
   "receiptNumber": zod.string(),
   "entryDate": zod.string(),
   "description": zod.string().optional(),
-  "incomeType": zod.string(),
+  "incomeSource": zod.string(),
   "amount": zod.number()
 })
 
@@ -601,7 +592,7 @@ export const CreateJointIncomeResponse = zod.object({
   "receiptNumber": zod.string(),
   "entryDate": zod.string(),
   "description": zod.string(),
-  "incomeType": zod.string(),
+  "incomeSource": zod.string(),
   "amount": zod.number(),
   "createdAt": zod.string()
 })
@@ -618,7 +609,7 @@ export const UpdateJointIncomeBody = zod.object({
   "receiptNumber": zod.string(),
   "entryDate": zod.string(),
   "description": zod.string().optional(),
-  "incomeType": zod.string(),
+  "incomeSource": zod.string(),
   "amount": zod.number()
 })
 
@@ -627,7 +618,7 @@ export const UpdateJointIncomeResponse = zod.object({
   "receiptNumber": zod.string(),
   "entryDate": zod.string(),
   "description": zod.string(),
-  "incomeType": zod.string(),
+  "incomeSource": zod.string(),
   "amount": zod.number(),
   "createdAt": zod.string()
 })

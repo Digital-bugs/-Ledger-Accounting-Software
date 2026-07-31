@@ -14,24 +14,11 @@ const router: IRouter = Router();
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getSummary() {
-  const byType = db
-    .prepare(
-      `SELECT income_type, COALESCE(SUM(amount), 0) as total
-       FROM joint_incomes
-       GROUP BY income_type`
-    )
-    .all() as { income_type: string; total: number }[];
+  const { total } = db
+    .prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM joint_incomes`)
+    .get() as { total: number };
 
-  const get = (type: string) =>
-    byType.find((r) => r.income_type === type)?.total ?? 0;
-
-  const rentTotal = get("Rent");
-  const officeSaleTotal = get("Office Sale");
-  const flatSaleTotal = get("Flat Sale");
-  const otherTotal = get("Other");
-  const combinedTotal = rentTotal + officeSaleTotal + flatSaleTotal + otherTotal;
-
-  return { rentTotal, officeSaleTotal, flatSaleTotal, otherTotal, combinedTotal };
+  return { combinedTotal: total };
 }
 
 function getRecordById(id: number | bigint) {
@@ -41,7 +28,7 @@ function getRecordById(id: number | bigint) {
               COALESCE(receipt_number, '') as receiptNumber,
               entry_date as entryDate,
               COALESCE(description, '') as description,
-              COALESCE(income_type, '') as incomeType,
+              COALESCE(income_type, '') as incomeSource,
               amount,
               created_at as createdAt
        FROM joint_incomes
@@ -61,7 +48,6 @@ router.get("/joint-incomes/summary", (_req, res): void => {
 router.get("/joint-incomes", (req, res): void => {
   const {
     search,
-    incomeType,
     dateFrom,
     dateTo,
     page = "1",
@@ -75,10 +61,6 @@ router.get("/joint-incomes", (req, res): void => {
   if (search) {
     conditions.push("(receipt_number LIKE ? OR description LIKE ?)");
     params.push(`%${search}%`, `%${search}%`);
-  }
-  if (incomeType) {
-    conditions.push("income_type = ?");
-    params.push(incomeType);
   }
   if (dateFrom) {
     conditions.push("entry_date >= ?");
@@ -107,7 +89,7 @@ router.get("/joint-incomes", (req, res): void => {
               COALESCE(receipt_number, '') as receiptNumber,
               entry_date as entryDate,
               COALESCE(description, '') as description,
-              COALESCE(income_type, '') as incomeType,
+              COALESCE(income_type, '') as incomeSource,
               amount,
               created_at as createdAt
        FROM joint_incomes
@@ -143,7 +125,7 @@ router.post("/joint-incomes", (req, res): void => {
       body.receiptNumber || null,
       body.entryDate,
       body.description ?? "",
-      body.incomeType,
+      body.incomeSource,
       body.amount
     );
 
@@ -166,7 +148,7 @@ router.put("/joint-incomes/:id", (req, res): void => {
       body.receiptNumber || null,
       body.entryDate,
       body.description ?? "",
-      body.incomeType,
+      body.incomeSource,
       body.amount,
       id
     );

@@ -1019,11 +1019,8 @@ function AccountantExpenseReport() {
 
 // ── Joint Income Report ───────────────────────────────────────────────────────
 
-const INCOME_TYPES = ["Rent", "Office Sale", "Flat Sale", "Other"];
-
 function JointIncomeReport() {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
-  const [incomeType, setIncomeType] = useState("");
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
     const t = setTimeout(() => setFilters((f) => ({ ...f, search: searchInput, page: 1 })), 300);
@@ -1032,45 +1029,30 @@ function JointIncomeReport() {
 
   const params = {
     ...(filters.search ? { search: filters.search } : {}),
-    ...(incomeType ? { incomeType } : {}),
     ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
     ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
     page: filters.page, pageSize: filters.pageSize, sortDir: filters.sortDir,
   };
   const { data, isLoading } = useListJointIncomes(params);
   const summary = data?.summary;
-  const headers = ["Receipt #", "Date", "Description", "Type", "Amount"];
+  const headers = ["Receipt #", "Date", "Income Source", "Description", "Amount"];
   const title = "Joint Company Income Report";
-  const buildRows = () => (data?.data ?? []).map((r) => [r.receiptNumber, r.entryDate, r.description ?? "", r.incomeType, r.amount] as (string|number)[]);
+  const buildRows = () => (data?.data ?? []).map((r) => [r.receiptNumber, r.entryDate, r.incomeSource, r.description ?? "", r.amount] as (string|number)[]);
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-5 gap-3">
         {[
-          { label: "Rent", value: summary?.rentTotal ?? 0 },
-          { label: "Office Sale", value: summary?.officeSaleTotal ?? 0 },
-          { label: "Flat Sale", value: summary?.flatSaleTotal ?? 0 },
-          { label: "Other", value: summary?.otherTotal ?? 0 },
           { label: "Combined Total", value: summary?.combinedTotal ?? 0 },
-        ].map((c, i) => (
+        ].map((c) => (
           <Card key={c.label}><CardHeader className="pb-1 pt-3 px-4 space-y-0"><CardTitle className="text-xs font-medium text-muted-foreground">{c.label}</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${i === 4 ? "text-foreground" : "text-emerald-600"}`}>Rs {fmt(c.value)}</div>}</CardContent></Card>
+            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className="text-xl font-bold font-mono text-foreground">Rs. {fmt(c.value)}</div>}</CardContent></Card>
         ))}
       </div>
       <Card><CardContent className="pt-4 pb-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex flex-wrap gap-3 items-end">
             <FilterBar filters={filters} setFilters={setFilters} showPartner={false} searchInput={searchInput} setSearchInput={setSearchInput} />
-            <div className="w-36 space-y-1">
-              <Label className="text-xs text-muted-foreground">Income Type</Label>
-              <Select value={incomeType || "all"} onValueChange={(v) => setIncomeType(v === "all" ? "" : v)}>
-                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="All Types" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {INCOME_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), filters.dateFrom, filters.dateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Joint Income")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
         </div>
@@ -1082,8 +1064,8 @@ function JointIncomeReport() {
             <TableHead className="font-semibold cursor-pointer select-none" onClick={() => setFilters((f) => ({ ...f, sortDir: f.sortDir === "asc" ? "desc" : "asc", page: 1 }))}>
               <div className="flex items-center gap-1">Date {filters.sortDir === "asc" ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}</div>
             </TableHead>
+            <TableHead className="font-semibold">Income Source</TableHead>
             <TableHead className="font-semibold">Description</TableHead>
-            <TableHead className="font-semibold">Type</TableHead>
             <TableHead className="font-semibold text-right">Amount</TableHead>
           </TableRow></TableHeader>
           <TableBody>
@@ -1093,9 +1075,9 @@ function JointIncomeReport() {
                 <TableRow key={r.id}>
                   <TableCell className="font-mono text-xs text-muted-foreground">{r.receiptNumber || "—"}</TableCell>
                   <TableCell className="text-xs tabular-nums">{r.entryDate}</TableCell>
+                  <TableCell className="text-xs">{r.incomeSource || "—"}</TableCell>
                   <TableCell className="text-xs">{r.description || "—"}</TableCell>
-                  <TableCell><Badge variant="outline" className="text-xs">{r.incomeType}</Badge></TableCell>
-                  <TableCell className="text-right font-mono text-xs font-medium text-emerald-600">Rs {fmt(r.amount)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs font-medium text-emerald-600">Rs. {fmt(r.amount)}</TableCell>
                 </TableRow>
               ))}
           </TableBody>

@@ -57,17 +57,10 @@ import {
   ChevronRight,
   Search,
   X,
-  Home,
-  Building2,
-  Building,
-  CircleDollarSign,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const INCOME_TYPES = ["Rent", "Office Sale", "Flat Sale", "Other"] as const;
-type IncomeType = (typeof INCOME_TYPES)[number];
 
 const PAGE_SIZES = [25, 50, 100];
 
@@ -77,7 +70,6 @@ type SortDir = "asc" | "desc";
 
 interface Filters {
   search: string;
-  incomeType: string;
   dateFrom: string;
   dateTo: string;
   page: number;
@@ -87,7 +79,6 @@ interface Filters {
 
 const INITIAL_FILTERS: Filters = {
   search: "",
-  incomeType: "",
   dateFrom: "",
   dateTo: "",
   page: 1,
@@ -103,7 +94,6 @@ const fmt = (n: number) =>
 function filtersToParams(f: Filters) {
   return {
     ...(f.search ? { search: f.search } : {}),
-    ...(f.incomeType ? { incomeType: f.incomeType } : {}),
     ...(f.dateFrom ? { dateFrom: f.dateFrom } : {}),
     ...(f.dateTo ? { dateTo: f.dateTo } : {}),
     page: f.page,
@@ -111,32 +101,6 @@ function filtersToParams(f: Filters) {
     sortDir: f.sortDir as "asc" | "desc",
   };
 }
-
-const INCOME_TYPE_STYLES: Record<
-  string,
-  { bg: string; text: string; ring: string }
-> = {
-  Rent: {
-    bg: "bg-blue-50",
-    text: "text-blue-700",
-    ring: "ring-blue-200",
-  },
-  "Office Sale": {
-    bg: "bg-violet-50",
-    text: "text-violet-700",
-    ring: "ring-violet-200",
-  },
-  "Flat Sale": {
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
-    ring: "ring-emerald-200",
-  },
-  Other: {
-    bg: "bg-amber-50",
-    text: "text-amber-700",
-    ring: "ring-amber-200",
-  },
-};
 
 // ── Form Dialog ───────────────────────────────────────────────────────────────
 
@@ -154,8 +118,8 @@ function FormDialog({ open, onClose, editing, onSaved }: FormDialogProps) {
   const [form, setForm] = useState<JointIncomeInput>({
     receiptNumber: "",
     entryDate: "",
+    incomeSource: "",
     description: "",
-    incomeType: "Rent",
     amount: 0,
   });
   const [errors, setErrors] = useState<
@@ -169,16 +133,16 @@ function FormDialog({ open, onClose, editing, onSaved }: FormDialogProps) {
         setForm({
           receiptNumber: editing.receiptNumber,
           entryDate: editing.entryDate,
+          incomeSource: editing.incomeSource,
           description: editing.description,
-          incomeType: editing.incomeType as IncomeType,
           amount: editing.amount,
         });
       } else {
         setForm({
           receiptNumber: "",
           entryDate: "",
+          incomeSource: "",
           description: "",
-          incomeType: "Rent",
           amount: 0,
         });
       }
@@ -201,7 +165,7 @@ function FormDialog({ open, onClose, editing, onSaved }: FormDialogProps) {
     const e: typeof errors = {};
     if (!form.receiptNumber?.trim()) e.receiptNumber = "Receipt number is required";
     if (!form.entryDate) e.entryDate = "Date is required";
-    if (!form.incomeType) e.incomeType = "Income type is required";
+    if (!form.incomeSource?.trim()) e.incomeSource = "Income source is required";
     if (!form.amount || form.amount <= 0)
       e.amount = "Amount must be greater than 0";
     setErrors(e);
@@ -215,6 +179,7 @@ function FormDialog({ open, onClose, editing, onSaved }: FormDialogProps) {
     const body: JointIncomeInput = {
       ...form,
       receiptNumber: form.receiptNumber?.trim() ?? "",
+      incomeSource: form.incomeSource?.trim() ?? "",
       description: form.description?.trim() ?? "",
     };
 
@@ -280,6 +245,22 @@ function FormDialog({ open, onClose, editing, onSaved }: FormDialogProps) {
             )}
           </div>
 
+          {/* Income Source */}
+          <div className="space-y-1.5">
+            <Label htmlFor="incomeSource">Income Source</Label>
+            <Input
+              id="incomeSource"
+              value={form.incomeSource ?? ""}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, incomeSource: e.target.value }))
+              }
+              placeholder="e.g. Shop No. 3 Rent"
+            />
+            {errors.incomeSource && (
+              <p className="text-xs text-destructive">{errors.incomeSource}</p>
+            )}
+          </div>
+
           {/* Description */}
           <div className="space-y-1.5">
             <Label htmlFor="description">Description</Label>
@@ -289,38 +270,13 @@ function FormDialog({ open, onClose, editing, onSaved }: FormDialogProps) {
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
-              placeholder="e.g. Monthly office rent — July 2026"
+              placeholder="e.g. Monthly rent — July 2026"
             />
-          </div>
-
-          {/* Income Type */}
-          <div className="space-y-1.5">
-            <Label>Income Type</Label>
-            <Select
-              value={form.incomeType}
-              onValueChange={(v) =>
-                setForm((f) => ({ ...f, incomeType: v }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select income type" />
-              </SelectTrigger>
-              <SelectContent>
-                {INCOME_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.incomeType && (
-              <p className="text-xs text-destructive">{errors.incomeType}</p>
-            )}
           </div>
 
           {/* Amount */}
           <div className="space-y-1.5">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">Amount (Rs.)</Label>
             <Input
               id="amount"
               type="number"
@@ -429,43 +385,10 @@ export function JointCompanyIncome() {
   }
 
   const hasActiveFilters =
-    filters.search || filters.incomeType || filters.dateFrom || filters.dateTo;
+    filters.search || filters.dateFrom || filters.dateTo;
 
   const summary = data?.summary;
   const totalPages = data ? Math.ceil(data.total / filters.pageSize) : 0;
-
-  const summaryCards = [
-    {
-      label: "Total Rent Income",
-      value: summary?.rentTotal ?? 0,
-      icon: Home,
-      color: "text-blue-600",
-    },
-    {
-      label: "Total Office Sales",
-      value: summary?.officeSaleTotal ?? 0,
-      icon: Building2,
-      color: "text-violet-600",
-    },
-    {
-      label: "Total Flat Sales",
-      value: summary?.flatSaleTotal ?? 0,
-      icon: Building,
-      color: "text-emerald-600",
-    },
-    {
-      label: "Total Other Income",
-      value: summary?.otherTotal ?? 0,
-      icon: CircleDollarSign,
-      color: "text-amber-600",
-    },
-    {
-      label: "Total Joint Company Income",
-      value: summary?.combinedTotal ?? 0,
-      icon: Briefcase,
-      color: "text-foreground",
-    },
-  ];
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -478,7 +401,7 @@ export function JointCompanyIncome() {
             Joint Company Income
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Track all revenue for Crown King — Rent, Sales, and other income.
+            Track all revenue for the joint company.
           </p>
         </div>
         <Button onClick={openAdd} className="gap-2">
@@ -487,30 +410,25 @@ export function JointCompanyIncome() {
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {summaryCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.label}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {card.label}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-32" />
-                ) : (
-                  <div className={`text-2xl font-bold font-mono ${card.color}`}>
-                    Rs {fmt(card.value)}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* Summary Card */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Joint Company Income
+            </CardTitle>
+            <Briefcase className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <div className="text-2xl font-bold font-mono text-foreground">
+                Rs. {fmt(summary?.combinedTotal ?? 0)}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -529,35 +447,6 @@ export function JointCompanyIncome() {
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
               </div>
-            </div>
-
-            {/* Income Type Filter */}
-            <div className="w-44 space-y-1">
-              <Label className="text-xs text-muted-foreground">
-                Income Type
-              </Label>
-              <Select
-                value={filters.incomeType || "all"}
-                onValueChange={(v) =>
-                  setFilters((f) => ({
-                    ...f,
-                    incomeType: v === "all" ? "" : v,
-                    page: 1,
-                  }))
-                }
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="All types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {INCOME_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             {/* Date From */}
@@ -644,12 +533,12 @@ export function JointCompanyIncome() {
                         )}
                       </div>
                     </TableHead>
-                    <TableHead className="font-semibold">Description</TableHead>
-                    <TableHead className="w-32 font-semibold">
-                      Income Type
+                    <TableHead className="w-44 font-semibold">
+                      Income Source
                     </TableHead>
+                    <TableHead className="font-semibold">Description</TableHead>
                     <TableHead className="w-36 font-semibold text-right">
-                      Amount
+                      Amount (Rs.)
                     </TableHead>
                     <TableHead className="w-20 font-semibold text-center">
                       Actions
@@ -667,10 +556,10 @@ export function JointCompanyIncome() {
                           <Skeleton className="h-4 w-24" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-4 w-48" />
+                          <Skeleton className="h-4 w-32" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-4 w-48" />
                         </TableCell>
                         <TableCell>
                           <Skeleton className="h-4 w-20 ml-auto" />
@@ -692,58 +581,51 @@ export function JointCompanyIncome() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    data?.data.map((record) => {
-                      const style =
-                        INCOME_TYPE_STYLES[record.incomeType] ??
-                        INCOME_TYPE_STYLES["Other"];
-                      return (
-                        <TableRow key={record.id} className="group">
-                          <TableCell className="font-mono text-sm text-muted-foreground">
-                            {record.receiptNumber || "—"}
-                          </TableCell>
-                          <TableCell className="text-sm tabular-nums">
-                            {record.entryDate}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {record.description || (
-                              <span className="text-muted-foreground italic">
-                                —
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${style.bg} ${style.text} ${style.ring}`}
-                            >
-                              {record.incomeType}
+                    data?.data.map((record) => (
+                      <TableRow key={record.id} className="group">
+                        <TableCell className="font-mono text-sm text-muted-foreground">
+                          {record.receiptNumber || "—"}
+                        </TableCell>
+                        <TableCell className="text-sm tabular-nums">
+                          {record.entryDate}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {record.incomeSource || (
+                            <span className="text-muted-foreground italic">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {record.description || (
+                            <span className="text-muted-foreground italic">
+                              —
                             </span>
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm font-medium">
-                            Rs {fmt(record.amount)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={() => openEdit(record)}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => setDeleteId(record.id)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm font-medium">
+                          Rs. {fmt(record.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => openEdit(record)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteId(record.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>

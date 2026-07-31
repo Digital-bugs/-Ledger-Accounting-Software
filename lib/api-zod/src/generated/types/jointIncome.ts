@@ -11,7 +11,7 @@ export interface JointIncome {
   receiptNumber: string;
   entryDate: string;
   description: string;
-  incomeType: string;
+  incomeSource: string;
   amount: number;
   createdAt: string;
 }

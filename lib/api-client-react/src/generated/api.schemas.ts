@@ -158,16 +158,12 @@ export interface JointIncome {
   receiptNumber: string;
   entryDate: string;
   description: string;
-  incomeType: string;
+  incomeSource: string;
   amount: number;
   createdAt: string;
 }
 
 export interface JointIncomeSummary {
-  rentTotal: number;
-  officeSaleTotal: number;
-  flatSaleTotal: number;
-  otherTotal: number;
   combinedTotal: number;
 }
 
@@ -181,7 +177,7 @@ export interface JointIncomeInput {
   receiptNumber: string;
   entryDate: string;
   description?: string;
-  incomeType: string;
+  incomeSource: string;
   amount: number;
 }
 
@@ -511,10 +507,6 @@ export type ListJointIncomesParams = {
  * Search by receipt number or description
  */
 search?: string;
-/**
- * Filter by income type (Rent, Office Sale, Flat Sale, Other)
- */
-incomeType?: string;
 /**
  * Filter from date (YYYY-MM-DD)
  */
