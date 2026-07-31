@@ -8,7 +8,7 @@ export function Dashboard() {
   const { data: summary, isLoading, isError } = useGetDashboardSummary();
 
   const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `Rs ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const summaryCards = [
@@ -125,7 +125,7 @@ export function Dashboard() {
                         <div className="text-sm text-muted-foreground">{partner.sharePercentage}% Share</div>
                       </div>
                       <div className="text-right space-y-1">
-                        <div className="font-mono font-bold text-lg text-foreground">$0.00</div>
+                        <div className="font-mono font-bold text-lg text-foreground">Rs 0.00</div>
                         <div className="text-sm text-muted-foreground">Calculated Value</div>
                       </div>
                     </div>

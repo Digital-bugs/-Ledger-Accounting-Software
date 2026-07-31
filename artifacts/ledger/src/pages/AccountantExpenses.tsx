@@ -309,7 +309,7 @@ function FormDialog({ open, onClose, editing, onSaved, availableBalance }: FormD
                     maxAllowed <= 0 ? "text-destructive" : "text-foreground"
                   }`}
                 >
-                  ${fmt(maxAllowed)}
+                  Rs {fmt(maxAllowed)}
                 </span>
                 {form.amount > 0 && !balanceIsInsufficient && (
                   <>
@@ -319,7 +319,7 @@ function FormDialog({ open, onClose, editing, onSaved, availableBalance }: FormD
                         balanceAfter < 0 ? "text-destructive" : "text-green-600"
                       }`}
                     >
-                      ${fmt(balanceAfter)}
+                      Rs {fmt(balanceAfter)}
                     </span>
                     {" after"}
                   </>
@@ -462,7 +462,7 @@ export function AccountantExpenses() {
               <Skeleton className="h-8 w-32" />
             ) : (
               <div className="text-2xl font-bold font-mono text-foreground">
-                ${fmt(summary?.totalExpenses ?? 0)}
+                Rs {fmt(summary?.totalExpenses ?? 0)}
               </div>
             )}
           </CardContent>
@@ -481,7 +481,7 @@ export function AccountantExpenses() {
               <Skeleton className="h-8 w-32" />
             ) : (
               <div className="text-2xl font-bold font-mono text-blue-600">
-                ${fmt(summary?.totalPettyCashReceived ?? 0)}
+                Rs {fmt(summary?.totalPettyCashReceived ?? 0)}
               </div>
             )}
           </CardContent>
@@ -520,7 +520,7 @@ export function AccountantExpenses() {
                     : "text-green-600"
                 }`}
               >
-                ${fmt(currentBalance)}
+                Rs {fmt(currentBalance)}
               </div>
             )}
             {!isLoading && (
@@ -678,7 +678,7 @@ export function AccountantExpenses() {
                           {exp.description || "—"}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm font-medium">
-                          ${fmt(exp.amount)}
+                          Rs {fmt(exp.amount)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

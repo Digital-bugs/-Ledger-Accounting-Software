@@ -489,7 +489,7 @@ function SummaryCards() {
               {isLoading ? (
                 <Skeleton className="h-6 w-20" />
               ) : (
-                <div className={`text-base font-bold font-mono ${c.color}`}>${fmt(c.value)}</div>
+                <div className={`text-base font-bold font-mono ${c.color}`}>Rs {fmt(c.value)}</div>
               )}
             </CardContent>
           </Card>
@@ -507,11 +507,11 @@ function AnalyticsDashboard({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: 
 
   const kpis = data
     ? [
-        { label: "Highest Monthly Expense", value: `$${fmt(data.highestMonthlyExpense)}`, sub: data.highestExpenseMonth ? fmtMonth(data.highestExpenseMonth) : "—", icon: TrendingDown, color: "text-red-600", bg: "bg-red-50" },
-        { label: "Highest Monthly Income", value: `$${fmt(data.highestMonthlyIncome)}`, sub: data.highestIncomeMonth ? fmtMonth(data.highestIncomeMonth) : "—", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
+        { label: "Highest Monthly Expense", value: `Rs ${fmt(data.highestMonthlyExpense)}`, sub: data.highestExpenseMonth ? fmtMonth(data.highestExpenseMonth) : "—", icon: TrendingDown, color: "text-red-600", bg: "bg-red-50" },
+        { label: "Highest Monthly Income", value: `Rs ${fmt(data.highestMonthlyIncome)}`, sub: data.highestIncomeMonth ? fmtMonth(data.highestIncomeMonth) : "—", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
         { label: "Total Transactions", value: String(data.totalTransactions), sub: "all modules", icon: Activity, color: "text-blue-600", bg: "bg-blue-50" },
-        { label: "Avg Monthly Expense", value: `$${fmt(data.avgMonthlyExpense)}`, sub: "per month", icon: BarChart2, color: "text-violet-600", bg: "bg-violet-50" },
-        { label: "Avg Monthly Income", value: `$${fmt(data.avgMonthlyIncome)}`, sub: "per month", icon: TrendingUp, color: "text-teal-600", bg: "bg-teal-50" },
+        { label: "Avg Monthly Expense", value: `Rs ${fmt(data.avgMonthlyExpense)}`, sub: "per month", icon: BarChart2, color: "text-violet-600", bg: "bg-violet-50" },
+        { label: "Avg Monthly Income", value: `Rs ${fmt(data.avgMonthlyIncome)}`, sub: "per month", icon: TrendingUp, color: "text-teal-600", bg: "bg-teal-50" },
       ]
     : [];
 
@@ -579,8 +579,8 @@ function Charts({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }) {
             <BarChart data={months} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="monthLabel" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => [`$${fmt(v)}`, ""]} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: number) => [`Rs ${fmt(v)}`, ""]} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               <Bar dataKey="directExpenses" name="Direct Expenses" fill={CHART_COLORS.directExpenses} radius={[3, 3, 0, 0]} />
               <Bar dataKey="pettyCashGiven" name="Petty Cash" fill={CHART_COLORS.pettyCashGiven} radius={[3, 3, 0, 0]} />
@@ -600,8 +600,8 @@ function Charts({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }) {
             <BarChart data={months} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="monthLabel" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => [`$${fmt(v)}`, ""]} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: number) => [`Rs ${fmt(v)}`, ""]} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               <Bar dataKey="jointIncome" name="Joint Income" fill={CHART_COLORS.jointIncome} radius={[3, 3, 0, 0]} />
             </BarChart>
@@ -619,8 +619,8 @@ function Charts({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }) {
             <LineChart data={months} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="monthLabel" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => [`$${fmt(v)}`, ""]} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: number) => [`Rs ${fmt(v)}`, ""]} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               <Line type="monotone" dataKey="investments" name="Investments" stroke={CHART_COLORS.investments} strokeWidth={2} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="totalExpenses" name="Total Expenses" stroke={CHART_COLORS.totalExpenses} strokeWidth={2} dot={{ r: 3 }} />
@@ -642,8 +642,8 @@ function Charts({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }) {
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="monthLabel" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => [`$${fmt(v)}`, ""]} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: number) => [`Rs ${fmt(v)}`, ""]} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               <Line type="monotone" dataKey="jointIncome" name="Income" stroke={CHART_COLORS.jointIncome} strokeWidth={2} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="totalExpenses" name="Expenses" stroke={CHART_COLORS.totalExpenses} strokeWidth={2} dot={{ r: 3 }} />
@@ -663,8 +663,8 @@ function Charts({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }) {
             <BarChart data={months} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="monthLabel" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: number) => [`$${fmt(v)}`, ""]} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: number) => [`Rs ${fmt(v)}`, ""]} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               <Bar dataKey="investments" name="Total Investments" fill={CHART_COLORS.investments} radius={[3, 3, 0, 0]} />
             </BarChart>
@@ -734,7 +734,7 @@ function InvestmentReport() {
               <CardTitle className="text-xs font-medium text-muted-foreground">{c.label}</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-3">
-              {isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>${fmt(c.value)}</div>}
+              {isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>Rs {fmt(c.value)}</div>}
             </CardContent>
           </Card>
         ))}
@@ -791,7 +791,7 @@ function InvestmentReport() {
                     <TableCell className="text-xs tabular-nums">{r.entryDate}</TableCell>
                     <TableCell className="text-xs">{r.description}</TableCell>
                     <TableCell><PartnerBadge name={r.partnerName} /></TableCell>
-                    <TableCell className="text-right font-mono text-xs font-medium">${fmt(r.amount)}</TableCell>
+                    <TableCell className="text-right font-mono text-xs font-medium">Rs {fmt(r.amount)}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -836,7 +836,7 @@ function DirectExpenseReport() {
           { label: "Combined Total", value: summary?.combinedTotal ?? 0, color: "text-foreground" },
         ].map((c) => (
           <Card key={c.label}><CardHeader className="pb-1 pt-3 px-4 space-y-0"><CardTitle className="text-xs font-medium text-muted-foreground">{c.label}</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>${fmt(c.value)}</div>}</CardContent></Card>
+            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>Rs {fmt(c.value)}</div>}</CardContent></Card>
         ))}
       </div>
       <Card><CardContent className="pt-4 pb-4">
@@ -864,7 +864,7 @@ function DirectExpenseReport() {
                   <TableCell className="text-xs tabular-nums">{r.entryDate}</TableCell>
                   <TableCell className="text-xs">{r.description}</TableCell>
                   <TableCell><PartnerBadge name={r.partnerName} /></TableCell>
-                  <TableCell className="text-right font-mono text-xs font-medium">${fmt(r.amount)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs font-medium">Rs {fmt(r.amount)}</TableCell>
                 </TableRow>
               ))}
           </TableBody>
@@ -908,7 +908,7 @@ function PettyCashReport() {
           { label: "Accountant Balance", value: summary?.accountantCashBalance ?? 0, color: "text-amber-600" },
         ].map((c) => (
           <Card key={c.label}><CardHeader className="pb-1 pt-3 px-4 space-y-0"><CardTitle className="text-xs font-medium text-muted-foreground">{c.label}</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>${fmt(c.value)}</div>}</CardContent></Card>
+            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>Rs {fmt(c.value)}</div>}</CardContent></Card>
         ))}
       </div>
       <Card><CardContent className="pt-4 pb-4">
@@ -937,7 +937,7 @@ function PettyCashReport() {
                   <TableCell className="text-xs tabular-nums">{r.entryDate}</TableCell>
                   <TableCell className="text-xs">{r.description}</TableCell>
                   <TableCell><PartnerBadge name={r.partnerName} /></TableCell>
-                  <TableCell className="text-right font-mono text-xs font-medium">${fmt(r.amount)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs font-medium">Rs {fmt(r.amount)}</TableCell>
                 </TableRow>
               ))}
           </TableBody>
@@ -979,7 +979,7 @@ function AccountantExpenseReport() {
           { label: "Cash Balance", value: summary?.accountantCashBalance ?? 0, color: (summary?.accountantCashBalance ?? 0) >= 0 ? "text-emerald-600" : "text-red-600" },
         ].map((c) => (
           <Card key={c.label}><CardHeader className="pb-1 pt-3 px-4 space-y-0"><CardTitle className="text-xs font-medium text-muted-foreground">{c.label}</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>${fmt(c.value)}</div>}</CardContent></Card>
+            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${c.color}`}>Rs {fmt(c.value)}</div>}</CardContent></Card>
         ))}
       </div>
       <Card><CardContent className="pt-4 pb-4">
@@ -1006,7 +1006,7 @@ function AccountantExpenseReport() {
                   <TableCell className="font-mono text-xs text-muted-foreground">{r.receiptNumber || "—"}</TableCell>
                   <TableCell className="text-xs tabular-nums">{r.entryDate}</TableCell>
                   <TableCell className="text-xs">{r.description || "—"}</TableCell>
-                  <TableCell className="text-right font-mono text-xs font-medium">${fmt(r.amount)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs font-medium">Rs {fmt(r.amount)}</TableCell>
                 </TableRow>
               ))}
           </TableBody>
@@ -1054,7 +1054,7 @@ function JointIncomeReport() {
           { label: "Combined Total", value: summary?.combinedTotal ?? 0 },
         ].map((c, i) => (
           <Card key={c.label}><CardHeader className="pb-1 pt-3 px-4 space-y-0"><CardTitle className="text-xs font-medium text-muted-foreground">{c.label}</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${i === 4 ? "text-foreground" : "text-emerald-600"}`}>${fmt(c.value)}</div>}</CardContent></Card>
+            <CardContent className="px-4 pb-3">{isLoading ? <Skeleton className="h-7 w-24" /> : <div className={`text-xl font-bold font-mono ${i === 4 ? "text-foreground" : "text-emerald-600"}`}>Rs {fmt(c.value)}</div>}</CardContent></Card>
         ))}
       </div>
       <Card><CardContent className="pt-4 pb-4">
@@ -1095,7 +1095,7 @@ function JointIncomeReport() {
                   <TableCell className="text-xs tabular-nums">{r.entryDate}</TableCell>
                   <TableCell className="text-xs">{r.description || "—"}</TableCell>
                   <TableCell><Badge variant="outline" className="text-xs">{r.incomeType}</Badge></TableCell>
-                  <TableCell className="text-right font-mono text-xs font-medium text-emerald-600">${fmt(r.amount)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs font-medium text-emerald-600">Rs {fmt(r.amount)}</TableCell>
                 </TableRow>
               ))}
           </TableBody>
@@ -1116,20 +1116,20 @@ function SettlementReport() {
 
   const rows: [string, string, string][] = data
     ? [
-        ["Yasir Investment", `$${fmt(data.yasirInvestment)}`, ""],
-        ["Khurram Investment", `$${fmt(data.khurramInvestment)}`, ""],
-        ["Total Investment", `$${fmt(data.totalInvestment)}`, "combined"],
-        ["Yasir Direct Expenses", `$${fmt(data.yasirDirectExpenses)}`, ""],
-        ["Khurram Direct Expenses", `$${fmt(data.khurramDirectExpenses)}`, ""],
-        ["Total Direct Expenses", `$${fmt(data.totalDirectExpenses)}`, "combined"],
-        ["Total Accountant Expenses", `$${fmt(data.totalAccountantExpenses)}`, "combined"],
-        ["Total Company Expenses", `$${fmt(data.totalExpenses)}`, "combined"],
-        ["Total Joint Income", `$${fmt(data.totalJointIncome)}`, "income"],
-        ["Accountant Cash Balance", `$${fmt(data.accountantCashBalance)}`, "balance"],
-        ["Yasir Total Paid", `$${fmt(data.yasirTotalPaid)}`, ""],
-        ["Khurram Total Paid", `$${fmt(data.khurramTotalPaid)}`, ""],
-        ["Yasir Share (${data.yasirSharePercentage}%)", `$${fmt(data.yasirExpectedShare)}`, ""],
-        ["Khurram Share (${data.khurramSharePercentage}%)", `$${fmt(data.khurramExpectedShare)}`, ""],
+        ["Yasir Investment", `Rs ${fmt(data.yasirInvestment)}`, ""],
+        ["Khurram Investment", `Rs ${fmt(data.khurramInvestment)}`, ""],
+        ["Total Investment", `Rs ${fmt(data.totalInvestment)}`, "combined"],
+        ["Yasir Direct Expenses", `Rs ${fmt(data.yasirDirectExpenses)}`, ""],
+        ["Khurram Direct Expenses", `Rs ${fmt(data.khurramDirectExpenses)}`, ""],
+        ["Total Direct Expenses", `Rs ${fmt(data.totalDirectExpenses)}`, "combined"],
+        ["Total Accountant Expenses", `Rs ${fmt(data.totalAccountantExpenses)}`, "combined"],
+        ["Total Company Expenses", `Rs ${fmt(data.totalExpenses)}`, "combined"],
+        ["Total Joint Income", `Rs ${fmt(data.totalJointIncome)}`, "income"],
+        ["Accountant Cash Balance", `Rs ${fmt(data.accountantCashBalance)}`, "balance"],
+        ["Yasir Total Paid", `Rs ${fmt(data.yasirTotalPaid)}`, ""],
+        ["Khurram Total Paid", `Rs ${fmt(data.khurramTotalPaid)}`, ""],
+        ["Yasir Share (${data.yasirSharePercentage}%)", `Rs ${fmt(data.yasirExpectedShare)}`, ""],
+        ["Khurram Share (${data.khurramSharePercentage}%)", `Rs ${fmt(data.khurramExpectedShare)}`, ""],
         ["Settlement", data.settlementText, "settlement"],
       ]
     : [];
@@ -1194,7 +1194,7 @@ function SettlementReport() {
                     {secRows.map(([label, value, bold]) => (
                       <TableRow key={String(label)}>
                         <TableCell className={`text-sm ${bold ? "font-semibold" : ""}`}>{String(label)}</TableCell>
-                        <TableCell className={`text-right font-mono text-sm ${bold ? "font-bold" : ""}`}>${fmt(Number(value))}</TableCell>
+                        <TableCell className={`text-right font-mono text-sm ${bold ? "font-bold" : ""}`}>Rs {fmt(Number(value))}</TableCell>
                       </TableRow>
                     ))}
                   </>
@@ -1237,13 +1237,13 @@ function OverallSummaryReport({ dateFrom, dateTo }: { dateFrom?: string; dateTo?
 
   const rows: [string, string][] = totals
     ? [
-        ["Total Investments", `$${fmt(totals.investments)}`],
-        ["Total Direct Expenses", `$${fmt(totals.directExpenses)}`],
-        ["Total Petty Cash Given", `$${fmt(totals.pettyCashGiven)}`],
-        ["Total Accountant Expenses", `$${fmt(totals.accountantExpenses)}`],
-        ["Total Company Expenses", `$${fmt(totals.totalExpenses)}`],
-        ["Total Joint Income", `$${fmt(totals.jointIncome)}`],
-        ["Net Cash Flow", `$${fmt(totals.jointIncome - totals.totalExpenses)}`],
+        ["Total Investments", `Rs ${fmt(totals.investments)}`],
+        ["Total Direct Expenses", `Rs ${fmt(totals.directExpenses)}`],
+        ["Total Petty Cash Given", `Rs ${fmt(totals.pettyCashGiven)}`],
+        ["Total Accountant Expenses", `Rs ${fmt(totals.accountantExpenses)}`],
+        ["Total Company Expenses", `Rs ${fmt(totals.totalExpenses)}`],
+        ["Total Joint Income", `Rs ${fmt(totals.jointIncome)}`],
+        ["Net Cash Flow", `Rs ${fmt(totals.jointIncome - totals.totalExpenses)}`],
       ]
     : [];
 
@@ -1301,12 +1301,12 @@ function OverallSummaryReport({ dateFrom, dateTo }: { dateFrom?: string; dateTo?
                   {(monthly?.months ?? []).map((m) => (
                     <TableRow key={m.month}>
                       <TableCell className="text-xs font-medium">{fmtMonth(m.month)}</TableCell>
-                      <TableCell className="text-right font-mono text-xs text-blue-600">${fmt(m.investments)}</TableCell>
-                      <TableCell className="text-right font-mono text-xs text-red-600">${fmt(m.directExpenses)}</TableCell>
-                      <TableCell className="text-right font-mono text-xs text-amber-600">${fmt(m.pettyCashGiven)}</TableCell>
-                      <TableCell className="text-right font-mono text-xs text-violet-600">${fmt(m.accountantExpenses)}</TableCell>
-                      <TableCell className="text-right font-mono text-xs text-emerald-600">${fmt(m.jointIncome)}</TableCell>
-                      <TableCell className="text-right font-mono text-xs font-semibold">${fmt(m.totalExpenses)}</TableCell>
+                      <TableCell className="text-right font-mono text-xs text-blue-600">Rs {fmt(m.investments)}</TableCell>
+                      <TableCell className="text-right font-mono text-xs text-red-600">Rs {fmt(m.directExpenses)}</TableCell>
+                      <TableCell className="text-right font-mono text-xs text-amber-600">Rs {fmt(m.pettyCashGiven)}</TableCell>
+                      <TableCell className="text-right font-mono text-xs text-violet-600">Rs {fmt(m.accountantExpenses)}</TableCell>
+                      <TableCell className="text-right font-mono text-xs text-emerald-600">Rs {fmt(m.jointIncome)}</TableCell>
+                      <TableCell className="text-right font-mono text-xs font-semibold">Rs {fmt(m.totalExpenses)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

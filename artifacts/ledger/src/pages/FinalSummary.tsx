@@ -21,7 +21,7 @@ import {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function fmt(value: number): string {
-  return `Rs. ${(value ?? 0).toLocaleString("en-PK", {
+  return `Rs ${(value ?? 0).toLocaleString("en-PK", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

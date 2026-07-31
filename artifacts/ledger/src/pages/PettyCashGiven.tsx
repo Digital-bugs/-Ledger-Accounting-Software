@@ -434,7 +434,7 @@ export function PettyCashGiven() {
                 <Skeleton className="h-8 w-32" />
               ) : (
                 <div className={`text-2xl font-bold font-mono ${card.color}`}>
-                  ${fmt(card.value)}
+                  Rs {fmt(card.value)}
                 </div>
               )}
             </CardContent>
@@ -609,7 +609,7 @@ export function PettyCashGiven() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm font-medium">
-                          ${fmt(rec.amount)}
+                          Rs {fmt(rec.amount)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
