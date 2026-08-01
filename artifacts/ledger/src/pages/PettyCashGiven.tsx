@@ -7,6 +7,7 @@ import {
   useDeletePettyCashGiven,
   getListPettyCashGivenQueryKey,
 } from "@workspace/api-client-react";
+import { usePeriod } from "@/context/PeriodContext";
 import type { PettyCashGivenRecord, PettyCashGivenBody } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -323,7 +324,13 @@ export function PettyCashGiven() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const params = filtersToParams(filters);
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo } = usePeriod();
+
+  const params = {
+    ...filtersToParams(filters),
+    ...(globalDateFrom ? { dateFrom: globalDateFrom } : {}),
+    ...(globalDateTo ? { dateTo: globalDateTo } : {}),
+  };
   const { data, isLoading, isError } = useListPettyCashGiven(params);
 
   const deleteMutation = useDeletePettyCashGiven();
@@ -364,7 +371,7 @@ export function PettyCashGiven() {
   }
 
   const hasActiveFilters =
-    filters.search || filters.partnerId || filters.dateFrom || filters.dateTo;
+    filters.search || filters.partnerId;
 
   const summary = data?.summary;
   const totalPages = data ? Math.ceil(data.total / filters.pageSize) : 0;
@@ -485,32 +492,6 @@ export function PettyCashGiven() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Date From */}
-            <div className="w-40 space-y-1">
-              <Label className="text-xs text-muted-foreground">From Date</Label>
-              <Input
-                type="date"
-                className="h-9"
-                value={filters.dateFrom}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, dateFrom: e.target.value, page: 1 }))
-                }
-              />
-            </div>
-
-            {/* Date To */}
-            <div className="w-40 space-y-1">
-              <Label className="text-xs text-muted-foreground">To Date</Label>
-              <Input
-                type="date"
-                className="h-9"
-                value={filters.dateTo}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, dateTo: e.target.value, page: 1 }))
-                }
-              />
             </div>
 
             {hasActiveFilters && (

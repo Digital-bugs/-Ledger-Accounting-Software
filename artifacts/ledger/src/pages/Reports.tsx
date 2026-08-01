@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { usePeriod } from "@/context/PeriodContext";
 import {
   useGetDashboardSummary,
   useListInvestments,
@@ -242,10 +243,6 @@ function ExportButtons({ onPrint, onExcelExport, onCSVExport, label = "Export" }
 interface FilterState {
   search: string;
   partnerId: string;
-  dateFrom: string;
-  dateTo: string;
-  month: string;
-  year: string;
   page: number;
   pageSize: number;
   sortDir: "asc" | "desc";
@@ -254,10 +251,6 @@ interface FilterState {
 const INITIAL_FILTERS: FilterState = {
   search: "",
   partnerId: "",
-  dateFrom: "",
-  dateTo: "",
-  month: "",
-  year: "",
   page: 1,
   pageSize: 25,
   sortDir: "desc",
@@ -272,7 +265,7 @@ interface FilterBarProps {
 }
 
 function FilterBar({ filters, setFilters, showPartner = true, searchInput, setSearchInput }: FilterBarProps) {
-  const hasActive = filters.search || filters.partnerId || filters.dateFrom || filters.dateTo || filters.month || filters.year;
+  const hasActive = filters.search || filters.partnerId;
 
   function clear() {
     setSearchInput("");
@@ -315,82 +308,6 @@ function FilterBar({ filters, setFilters, showPartner = true, searchInput, setSe
           </Select>
         </div>
       )}
-
-      {/* Month */}
-      <div className="w-32 space-y-1">
-        <Label className="text-xs text-muted-foreground">Month</Label>
-        <Select
-          value={filters.month || "all"}
-          onValueChange={(v) => {
-            const month = v === "all" ? "" : v;
-            const year = filters.year || String(new Date().getFullYear());
-            const dateFrom = month ? `${year}-${month}-01` : "";
-            const dateTo = month
-              ? `${year}-${month}-${new Date(Number(year), Number(month), 0).getDate()}`
-              : "";
-            setFilters((f) => ({ ...f, month, dateFrom, dateTo, page: 1 }));
-          }}
-        >
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue placeholder="All" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Months</SelectItem>
-            {MONTHS.map((m) => (
-              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Year */}
-      <div className="w-28 space-y-1">
-        <Label className="text-xs text-muted-foreground">Year</Label>
-        <Select
-          value={filters.year || "all"}
-          onValueChange={(v) => {
-            const year = v === "all" ? "" : v;
-            const month = filters.month;
-            const dateFrom = year && month ? `${year}-${month}-01` : year ? `${year}-01-01` : "";
-            const dateTo = year && month
-              ? `${year}-${month}-${new Date(Number(year), Number(month), 0).getDate()}`
-              : year ? `${year}-12-31` : "";
-            setFilters((f) => ({ ...f, year, dateFrom, dateTo, page: 1 }));
-          }}
-        >
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue placeholder="All" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Years</SelectItem>
-            {YEARS.map((y) => (
-              <SelectItem key={y.value} value={y.value}>{y.value}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Date From */}
-      <div className="w-36 space-y-1">
-        <Label className="text-xs text-muted-foreground">From Date</Label>
-        <Input
-          type="date"
-          className="h-8 text-xs"
-          value={filters.dateFrom}
-          onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value, month: "", year: "", page: 1 }))}
-        />
-      </div>
-
-      {/* Date To */}
-      <div className="w-36 space-y-1">
-        <Label className="text-xs text-muted-foreground">To Date</Label>
-        <Input
-          type="date"
-          className="h-8 text-xs"
-          value={filters.dateTo}
-          onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value, month: "", year: "", page: 1 }))}
-        />
-      </div>
 
       {hasActive && (
         <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground" onClick={clear}>
@@ -457,8 +374,9 @@ function PaginationBar({ filters, setFilters, total }: PaginationBarProps) {
 
 // ── Summary Cards ─────────────────────────────────────────────────────────────
 
-function SummaryCards() {
-  const { data, isLoading } = useGetDashboardSummary();
+function SummaryCards({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }) {
+  const params = { ...(dateFrom ? { dateFrom } : {}), ...(dateTo ? { dateTo } : {}) };
+  const { data, isLoading } = useGetDashboardSummary(Object.keys(params).length ? params : undefined);
   const cards = [
     { label: "Total Investments", value: data?.totalInvestments ?? 0, icon: Landmark, color: "text-blue-600" },
     { label: "Total Direct Expenses", value: data?.totalDirectExpenses ?? 0, icon: ReceiptText, color: "text-red-600" },
@@ -694,6 +612,7 @@ function PartnerBadge({ name }: { name: string }) {
 // ── Investment Report ─────────────────────────────────────────────────────────
 
 function InvestmentReport() {
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo } = usePeriod();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -704,8 +623,8 @@ function InvestmentReport() {
   const params = {
     ...(filters.search ? { search: filters.search } : {}),
     ...(filters.partnerId ? { partnerId: Number(filters.partnerId) } : {}),
-    ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
-    ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
+    ...(globalDateFrom ? { dateFrom: globalDateFrom } : {}),
+    ...(globalDateTo ? { dateTo: globalDateTo } : {}),
     page: filters.page, pageSize: filters.pageSize, sortDir: filters.sortDir,
   };
   const { data, isLoading } = useListInvestments(params);
@@ -746,7 +665,7 @@ function InvestmentReport() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <FilterBar filters={filters} setFilters={setFilters} searchInput={searchInput} setSearchInput={setSearchInput} />
             <ExportButtons
-              onPrint={() => openPrintWindow(title, headers, buildRows(), filters.dateFrom, filters.dateTo)}
+              onPrint={() => openPrintWindow(title, headers, buildRows(), globalDateFrom, globalDateTo)}
               onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Investments")}
               onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())}
             />
@@ -807,6 +726,7 @@ function InvestmentReport() {
 // ── Direct Expense Report ─────────────────────────────────────────────────────
 
 function DirectExpenseReport() {
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo } = usePeriod();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -817,8 +737,8 @@ function DirectExpenseReport() {
   const params = {
     ...(filters.search ? { search: filters.search } : {}),
     ...(filters.partnerId ? { partnerId: Number(filters.partnerId) } : {}),
-    ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
-    ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
+    ...(globalDateFrom ? { dateFrom: globalDateFrom } : {}),
+    ...(globalDateTo ? { dateTo: globalDateTo } : {}),
     page: filters.page, pageSize: filters.pageSize, sortDir: filters.sortDir,
   };
   const { data, isLoading } = useListDirectExpenses(params);
@@ -842,7 +762,7 @@ function DirectExpenseReport() {
       <Card><CardContent className="pt-4 pb-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <FilterBar filters={filters} setFilters={setFilters} searchInput={searchInput} setSearchInput={setSearchInput} />
-          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), filters.dateFrom, filters.dateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Direct Expenses")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
+          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), globalDateFrom, globalDateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Direct Expenses")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
         </div>
       </CardContent></Card>
       <Card><CardContent className="p-0">
@@ -878,6 +798,7 @@ function DirectExpenseReport() {
 // ── Petty Cash Report ─────────────────────────────────────────────────────────
 
 function PettyCashReport() {
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo } = usePeriod();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -888,8 +809,8 @@ function PettyCashReport() {
   const params = {
     ...(filters.search ? { search: filters.search } : {}),
     ...(filters.partnerId ? { partnerId: Number(filters.partnerId) } : {}),
-    ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
-    ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
+    ...(globalDateFrom ? { dateFrom: globalDateFrom } : {}),
+    ...(globalDateTo ? { dateTo: globalDateTo } : {}),
     page: filters.page, pageSize: filters.pageSize, sortDir: filters.sortDir,
   };
   const { data, isLoading } = useListPettyCashGiven(params);
@@ -914,7 +835,7 @@ function PettyCashReport() {
       <Card><CardContent className="pt-4 pb-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <FilterBar filters={filters} setFilters={setFilters} searchInput={searchInput} setSearchInput={setSearchInput} />
-          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), filters.dateFrom, filters.dateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Petty Cash")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
+          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), globalDateFrom, globalDateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Petty Cash")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
         </div>
       </CardContent></Card>
       <Card><CardContent className="p-0">
@@ -951,6 +872,7 @@ function PettyCashReport() {
 // ── Accountant Expense Report ─────────────────────────────────────────────────
 
 function AccountantExpenseReport() {
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo } = usePeriod();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -960,8 +882,8 @@ function AccountantExpenseReport() {
 
   const params = {
     ...(filters.search ? { search: filters.search } : {}),
-    ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
-    ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
+    ...(globalDateFrom ? { dateFrom: globalDateFrom } : {}),
+    ...(globalDateTo ? { dateTo: globalDateTo } : {}),
     page: filters.page, pageSize: filters.pageSize, sortDir: filters.sortDir,
   };
   const { data, isLoading } = useListAccountantExpenses(params);
@@ -985,7 +907,7 @@ function AccountantExpenseReport() {
       <Card><CardContent className="pt-4 pb-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <FilterBar filters={filters} setFilters={setFilters} showPartner={false} searchInput={searchInput} setSearchInput={setSearchInput} />
-          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), filters.dateFrom, filters.dateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Accountant Exp")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
+          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), globalDateFrom, globalDateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Accountant Exp")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
         </div>
       </CardContent></Card>
       <Card><CardContent className="p-0">
@@ -1020,6 +942,7 @@ function AccountantExpenseReport() {
 // ── Joint Income Report ───────────────────────────────────────────────────────
 
 function JointIncomeReport() {
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo } = usePeriod();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -1029,8 +952,8 @@ function JointIncomeReport() {
 
   const params = {
     ...(filters.search ? { search: filters.search } : {}),
-    ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
-    ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
+    ...(globalDateFrom ? { dateFrom: globalDateFrom } : {}),
+    ...(globalDateTo ? { dateTo: globalDateTo } : {}),
     page: filters.page, pageSize: filters.pageSize, sortDir: filters.sortDir,
   };
   const { data, isLoading } = useListJointIncomes(params);
@@ -1054,7 +977,7 @@ function JointIncomeReport() {
           <div className="flex flex-wrap gap-3 items-end">
             <FilterBar filters={filters} setFilters={setFilters} showPartner={false} searchInput={searchInput} setSearchInput={setSearchInput} />
           </div>
-          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), filters.dateFrom, filters.dateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Joint Income")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
+          <ExportButtons onPrint={() => openPrintWindow(title, headers, buildRows(), globalDateFrom, globalDateTo)} onExcelExport={() => exportExcel(`${title}.xlsx`, headers, buildRows(), "Joint Income")} onCSVExport={() => exportCSV(`${title}.csv`, headers, buildRows())} />
         </div>
       </CardContent></Card>
       <Card><CardContent className="p-0">
@@ -1091,8 +1014,7 @@ function JointIncomeReport() {
 // ── Settlement Report ─────────────────────────────────────────────────────────
 
 function SettlementReport() {
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const { dateFrom, dateTo } = usePeriod();
   const params = { ...(dateFrom ? { dateFrom } : {}), ...(dateTo ? { dateTo } : {}) };
   const { data, isLoading } = useGetFinalSummary(Object.keys(params).length ? params : undefined);
 
@@ -1304,9 +1226,8 @@ function OverallSummaryReport({ dateFrom, dateTo }: { dateFrom?: string; dateTo?
 // ── Main Reports Page ─────────────────────────────────────────────────────────
 
 export function Reports() {
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo, label: periodLabel } = usePeriod();
   const [activeTab, setActiveTab] = useState("overview");
-  const [globalDateFrom, setGlobalDateFrom] = useState("");
-  const [globalDateTo, setGlobalDateTo] = useState("");
 
   return (
     <div className="space-y-6">
@@ -1316,28 +1237,13 @@ export function Reports() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Reports & Analytics</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Comprehensive financial reports, charts, and analytics for Crown King.
+            <span className="ml-2 text-foreground font-medium">Period: {periodLabel}</span>
           </p>
-        </div>
-        {/* Global date range */}
-        <div className="flex items-end gap-3">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Global From</Label>
-            <Input type="date" className="h-8 text-xs w-36" value={globalDateFrom} onChange={(e) => setGlobalDateFrom(e.target.value)} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Global To</Label>
-            <Input type="date" className="h-8 text-xs w-36" value={globalDateTo} onChange={(e) => setGlobalDateTo(e.target.value)} />
-          </div>
-          {(globalDateFrom || globalDateTo) && (
-            <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground" onClick={() => { setGlobalDateFrom(""); setGlobalDateTo(""); }}>
-              <X className="h-3.5 w-3.5" />Clear
-            </Button>
-          )}
         </div>
       </div>
 
       {/* Summary Cards */}
-      <SummaryCards />
+      <SummaryCards dateFrom={globalDateFrom || undefined} dateTo={globalDateTo || undefined} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap h-auto gap-1 p-1">

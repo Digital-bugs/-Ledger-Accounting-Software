@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePeriod } from "@/context/PeriodContext";
 import {
   useListJointIncomes,
   useCreateJointIncome,
@@ -339,7 +340,13 @@ export function JointCompanyIncome() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const params = filtersToParams(filters);
+  const { dateFrom: globalDateFrom, dateTo: globalDateTo } = usePeriod();
+
+  const params = {
+    ...filtersToParams(filters),
+    ...(globalDateFrom ? { dateFrom: globalDateFrom } : {}),
+    ...(globalDateTo ? { dateTo: globalDateTo } : {}),
+  };
   const { data, isLoading, isError } = useListJointIncomes(params);
 
   const deleteMutation = useDeleteJointIncome();
@@ -385,7 +392,7 @@ export function JointCompanyIncome() {
   }
 
   const hasActiveFilters =
-    filters.search || filters.dateFrom || filters.dateTo;
+    filters.search;
 
   const summary = data?.summary;
   const totalPages = data ? Math.ceil(data.total / filters.pageSize) : 0;
@@ -447,40 +454,6 @@ export function JointCompanyIncome() {
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
               </div>
-            </div>
-
-            {/* Date From */}
-            <div className="w-40 space-y-1">
-              <Label className="text-xs text-muted-foreground">From Date</Label>
-              <Input
-                type="date"
-                className="h-9"
-                value={filters.dateFrom}
-                onChange={(e) =>
-                  setFilters((f) => ({
-                    ...f,
-                    dateFrom: e.target.value,
-                    page: 1,
-                  }))
-                }
-              />
-            </div>
-
-            {/* Date To */}
-            <div className="w-40 space-y-1">
-              <Label className="text-xs text-muted-foreground">To Date</Label>
-              <Input
-                type="date"
-                className="h-9"
-                value={filters.dateTo}
-                onChange={(e) =>
-                  setFilters((f) => ({
-                    ...f,
-                    dateTo: e.target.value,
-                    page: 1,
-                  }))
-                }
-              />
             </div>
 
             {/* Clear Filters */}

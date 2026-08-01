@@ -3,9 +3,19 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Landmark, ReceiptText, Coins, Calculator, Briefcase, Wallet } from "lucide-react";
 import { useGetDashboardSummary } from "@workspace/api-client-react";
+import { usePeriod } from "@/context/PeriodContext";
 
 export function Dashboard() {
-  const { data: summary, isLoading, isError } = useGetDashboardSummary();
+  const { dateFrom, dateTo } = usePeriod();
+
+  const params = {
+    ...(dateFrom ? { dateFrom } : {}),
+    ...(dateTo ? { dateTo } : {}),
+  };
+
+  const { data: summary, isLoading, isError } = useGetDashboardSummary(
+    Object.keys(params).length ? params : undefined
+  );
 
   const formatCurrency = (value: number) => {
     return `Rs ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
