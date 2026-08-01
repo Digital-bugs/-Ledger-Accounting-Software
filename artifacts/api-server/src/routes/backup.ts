@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import express, { Router, type IRouter } from "express";
 import path from "node:path";
 import fs from "node:fs";
 import Database from "better-sqlite3";
@@ -262,6 +262,54 @@ router.put("/backup/settings", (req, res): void => {
     })
   );
 });
+
+// POST /backup/upload-restore — restore from a raw .db file uploaded by the browser
+router.post(
+  "/backup/upload-restore",
+  express.raw({ type: "application/octet-stream", limit: "200mb" }),
+  async (req, res): Promise<void> => {
+    const body = req.body as Buffer;
+
+    if (!Buffer.isBuffer(body) || body.length === 0) {
+      res.status(400).json({ success: false, message: "No file data received" });
+      return;
+    }
+
+    // Write to a temp file first
+    const tmpPath = path.join(DATA_DIR, `_upload_restore_${Date.now()}.db`);
+    try {
+      fs.writeFileSync(tmpPath, body);
+    } catch {
+      res.status(500).json({ success: false, message: "Failed to write uploaded file to disk" });
+      return;
+    }
+
+    // Validate it is a real SQLite database
+    try {
+      const testDb = new Database(tmpPath, { readonly: true });
+      testDb.pragma("integrity_check");
+      testDb.close();
+    } catch {
+      try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+      res.status(400).json({ success: false, message: "Uploaded file is not a valid SQLite database" });
+      return;
+    }
+
+    // Replace the live database
+    try {
+      db.close();
+      fs.copyFileSync(tmpPath, DB_PATH);
+      try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+      logger.info("Database restored from uploaded file — server restarting");
+    } catch {
+      res.status(500).json({ success: false, message: "Failed to replace database with uploaded file" });
+      return;
+    }
+
+    res.json({ success: true, message: "Database restored successfully. Server is restarting…" });
+    setTimeout(() => process.exit(0), 500);
+  }
+);
 
 // POST /backup/restore — restore from backup, then restart server
 router.post("/backup/restore", async (req, res): Promise<void> => {

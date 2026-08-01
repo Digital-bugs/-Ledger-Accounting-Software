@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   useListBackups,
   useCreateBackup,
@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -54,6 +55,7 @@ import {
   Trash2,
   RotateCcw,
   Download,
+  Upload,
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -62,6 +64,7 @@ import {
   HardDrive,
   Settings2,
   Loader2,
+  FolderOpen,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -320,15 +323,22 @@ function SettingsPanel() {
           </Select>
         </div>
 
-        {/* Backup folder (read-only display) */}
+        {/* Backup folder — editable path */}
         <div>
-          <Label className="text-sm font-medium">Backup Folder</Label>
+          <Label className="text-sm font-medium flex items-center gap-1.5">
+            <FolderOpen className="h-3.5 w-3.5" />
+            Backup Folder
+          </Label>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Server-side path where backup files are stored.
+            Server-side path where backup files are stored. Edit to change the location.
           </p>
-          <div className="mt-1.5 px-3 py-2 bg-muted rounded-md font-mono text-xs text-muted-foreground break-all">
-            {settings.backupFolder ?? BACKUPS_DIR_PLACEHOLDER}
-          </div>
+          <Input
+            value={settings.backupFolder ?? BACKUPS_DIR_PLACEHOLDER}
+            onChange={(e) => patch("backupFolder", e.target.value)}
+            className="mt-1.5 font-mono text-xs h-8"
+            placeholder={BACKUPS_DIR_PLACEHOLDER}
+            spellCheck={false}
+          />
         </div>
 
         <div className="flex justify-end">
@@ -532,7 +542,7 @@ function BackupTable({ onRestore }: BackupTableProps) {
   );
 }
 
-// ─── Restore Dialog ───────────────────────────────────────────────────────────
+// ─── Restore Dialog (from history) ───────────────────────────────────────────
 
 interface RestoreDialogProps {
   filename: string | null;
@@ -558,7 +568,6 @@ function RestoreDialog({ filename, onClose }: RestoreDialogProps) {
             description: "Database restored successfully. The app has reconnected.",
           });
           onClose();
-          // Reload the page so all queries use the restored database
           setTimeout(() => window.location.reload(), 800);
           return;
         }
@@ -646,6 +655,127 @@ function RestoreDialog({ filename, onClose }: RestoreDialogProps) {
   );
 }
 
+// ─── Upload Restore Dialog (restore from local .db file) ──────────────────────
+
+interface UploadRestoreDialogProps {
+  file: File | null;
+  onClose: () => void;
+}
+
+function UploadRestoreDialog({ file, onClose }: UploadRestoreDialogProps) {
+  const { toast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
+
+  const poll = async () => {
+    const MAX_ATTEMPTS = 30;
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      await new Promise((r) => setTimeout(r, 1500));
+      try {
+        const res = await fetch("/api/healthz");
+        if (res.ok) {
+          setReconnecting(false);
+          toast({
+            title: "Restore Complete",
+            description: "Database restored from uploaded file. The app has reconnected.",
+          });
+          onClose();
+          setTimeout(() => window.location.reload(), 800);
+          return;
+        }
+      } catch {
+        // server still restarting
+      }
+    }
+    setReconnecting(false);
+    toast({
+      title: "Reconnect Timeout",
+      description: "Server took too long to restart. Please refresh the page.",
+      variant: "destructive",
+    });
+    onClose();
+  };
+
+  const handleRestore = async () => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const response = await fetch("/api/backup/upload-restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream" },
+        body: arrayBuffer,
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error((body as { message?: string }).message ?? "Upload failed");
+      }
+
+      setUploading(false);
+      setReconnecting(true);
+      poll();
+    } catch (err) {
+      setUploading(false);
+      toast({
+        title: "Restore Failed",
+        description: err instanceof Error ? err.message : "Could not restore from the uploaded file.",
+        variant: "destructive",
+      });
+      onClose();
+    }
+  };
+
+  return (
+    <AlertDialog open={!!file} onOpenChange={(open) => !open && !uploading && !reconnecting && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Restore from Uploaded File?</AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 text-sm text-muted-foreground">
+              {reconnecting ? (
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Server restarting… waiting to reconnect
+                </div>
+              ) : (
+                <>
+                  <p>
+                    <strong className="text-foreground">Current database will be replaced.</strong>
+                  </p>
+                  <p>
+                    All existing data will be overwritten with the contents of the selected file.
+                    The application will restart automatically after the restore completes.
+                  </p>
+                  <div className="bg-muted rounded px-3 py-2 space-y-1">
+                    <div className="font-mono text-xs break-all text-foreground">{file?.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {file ? formatSize(file.size) : ""}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {!reconnecting && (
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={uploading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleRestore}
+              disabled={uploading}
+            >
+              {uploading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              {uploading ? "Uploading & Restoring…" : "Yes, Restore Database"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        )}
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 // ─── Info Cards ───────────────────────────────────────────────────────────────
 
 function InfoCards() {
@@ -695,15 +825,24 @@ export function Backup() {
   const { toast } = useToast();
   const createBackup = useCreateBackup();
   const [restoreTarget, setRestoreTarget] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateBackup = () => {
     createBackup.mutate(undefined, {
       onSuccess: (backup) => {
         toast({
           title: "Backup Created",
-          description: `Saved as ${backup.filename}`,
+          description: `Saved as ${backup.filename} — downloading now.`,
         });
         queryClient.invalidateQueries({ queryKey: getListBackupsQueryKey() });
+        // Trigger browser download so user can save to a location of their choice
+        const a = document.createElement("a");
+        a.href = `/api/backup/download/${encodeURIComponent(backup.filename)}`;
+        a.download = backup.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       },
       onError: () => {
         toast({
@@ -713,6 +852,23 @@ export function Backup() {
         });
       },
     });
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.name.endsWith(".db")) {
+        toast({
+          title: "Invalid File",
+          description: "Please select a valid .db backup file.",
+          variant: "destructive",
+        });
+      } else {
+        setUploadFile(file);
+      }
+    }
+    // Reset so the same file can be re-selected if needed
+    e.target.value = "";
   };
 
   return (
@@ -725,15 +881,33 @@ export function Backup() {
             Protect your Crown King accounting data with manual and automatic backups.
           </p>
         </div>
-        <Button onClick={handleCreateBackup} disabled={createBackup.isPending}>
-          {createBackup.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="mr-2 h-4 w-4" />
-          )}
-          {createBackup.isPending ? "Creating…" : "Create Backup Now"}
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Restore from File
+          </Button>
+          <Button onClick={handleCreateBackup} disabled={createBackup.isPending}>
+            {createBackup.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4" />
+            )}
+            {createBackup.isPending ? "Creating…" : "Create Backup Now"}
+          </Button>
+        </div>
       </div>
+
+      {/* Hidden file input for restore-from-file */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".db"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
 
       {/* Info cards */}
       <InfoCards />
@@ -753,10 +927,16 @@ export function Backup() {
         <BackupTable onRestore={(filename) => setRestoreTarget(filename)} />
       </div>
 
-      {/* Restore Dialog */}
+      {/* Restore from history dialog */}
       <RestoreDialog
         filename={restoreTarget}
         onClose={() => setRestoreTarget(null)}
+      />
+
+      {/* Restore from uploaded file dialog */}
+      <UploadRestoreDialog
+        file={uploadFile}
+        onClose={() => setUploadFile(null)}
       />
     </div>
   );
