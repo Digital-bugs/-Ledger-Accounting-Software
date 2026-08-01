@@ -115,15 +115,21 @@ router.get("/final-summary", (req, res): void => {
   const combinedTotalPaid = yasirTotalPaid + khurramTotalPaid;
 
   // ── Expected shares ───────────────────────────────────────────────────────────
-  const yasirExpectedShare = (totalExpenses * yasirSharePct) / 100;
-  const khurramExpectedShare = (totalExpenses * khurramSharePct) / 100;
+  // Base is combinedTotalPaid so that yasirExpected + khurramExpected always
+  // equals combinedTotalPaid and the two differences always sum to zero.
+  const yasirExpectedShare = (combinedTotalPaid * yasirSharePct) / 100;
+  const khurramExpectedShare = (combinedTotalPaid * khurramSharePct) / 100;
 
   // ── Differences ──────────────────────────────────────────────────────────────
-  // Positive = paid more than expected (overpaid); Negative = underpaid
+  // Positive = paid more than expected (Extra Paid)
+  // Negative = paid less than expected (Under Paid)
+  // Invariant: yasirDifference + khurramDifference === 0
   const yasirDifference = yasirTotalPaid - yasirExpectedShare;
   const khurramDifference = khurramTotalPaid - khurramExpectedShare;
 
   // ── Settlement ───────────────────────────────────────────────────────────────
+  // Because the differences are always equal and opposite, either absolute value
+  // gives the same settlement amount.
   const settlementAmount = Math.abs(yasirDifference);
 
   let settlementDirection: "yasir_pays_khurram" | "khurram_pays_yasir" | "settled";
