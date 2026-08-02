@@ -1,6 +1,7 @@
 kind = "web"
 previewPath = "/"
 title = "Ledger Accounting Software"
+description = "A professional desktop-style accounting application for Crown King, tracking partner investments, direct expenses, petty cash, accountant expenses, joint company income, imports, reports, and final settlement. Used by two partners (Yasir and Khurram) to manage shared finances."
 version = "1.0.0"
 id = "artifacts/ledger"
 router = "path"

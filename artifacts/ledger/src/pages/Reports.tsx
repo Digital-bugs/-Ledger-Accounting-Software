@@ -1014,7 +1014,7 @@ function JointIncomeReport() {
 // ── Settlement Report ─────────────────────────────────────────────────────────
 
 function SettlementReport() {
-  const { dateFrom, dateTo } = usePeriod();
+  const { dateFrom, dateTo, setCustomRange, setPreset } = usePeriod();
   const params = { ...(dateFrom ? { dateFrom } : {}), ...(dateTo ? { dateTo } : {}) };
   const { data, isLoading } = useGetFinalSummary(Object.keys(params).length ? params : undefined);
 
@@ -1049,14 +1049,14 @@ function SettlementReport() {
           <div className="flex gap-3 items-end flex-wrap">
             <div className="w-40 space-y-1">
               <Label className="text-xs text-muted-foreground">From Date</Label>
-              <Input type="date" className="h-8 text-xs" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              <Input type="date" className="h-8 text-xs" value={dateFrom} onChange={(e) => setCustomRange(e.target.value, dateTo)} />
             </div>
             <div className="w-40 space-y-1">
               <Label className="text-xs text-muted-foreground">To Date</Label>
-              <Input type="date" className="h-8 text-xs" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+              <Input type="date" className="h-8 text-xs" value={dateTo} onChange={(e) => setCustomRange(dateFrom, e.target.value)} />
             </div>
             {(dateFrom || dateTo) && (
-              <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground" onClick={() => { setDateFrom(""); setDateTo(""); }}>
+              <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground" onClick={() => { setPreset("all-time"); }}>
                 <X className="h-3.5 w-3.5" />Clear
               </Button>
             )}
