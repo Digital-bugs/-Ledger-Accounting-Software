@@ -5,7 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { Partner } from './partner';
+import type { DashboardPartner } from './dashboardPartner';
 
 export interface DashboardSummary {
   totalInvestments: number;
@@ -14,5 +14,5 @@ export interface DashboardSummary {
   totalAccountantExpenses: number;
   totalJointIncome: number;
   accountantCashBalance: number;
-  partners: Partner[];
+  partners: DashboardPartner[];
 }

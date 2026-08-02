@@ -15,6 +15,16 @@ export interface Partner {
   sharePercentage: number;
 }
 
+export interface DashboardPartner {
+  id: number;
+  name: string;
+  sharePercentage: number;
+  investmentTotal: number;
+  directExpenseTotal: number;
+  pettyCashTotal: number;
+  totalContribution: number;
+}
+
 export interface DashboardSummary {
   totalInvestments: number;
   totalDirectExpenses: number;
@@ -22,7 +32,7 @@ export interface DashboardSummary {
   totalAccountantExpenses: number;
   totalJointIncome: number;
   accountantCashBalance: number;
-  partners: Partner[];
+  partners: DashboardPartner[];
 }
 
 export interface Backup {

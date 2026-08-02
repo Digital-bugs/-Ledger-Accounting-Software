@@ -21,6 +21,7 @@ export * from './backupSettingsInputAutoBackupSchedule';
 export * from './bulkImportInput';
 export * from './bulkImportInputModule';
 export * from './bulkImportResult';
+export * from './dashboardPartner';
 export * from './dashboardSummary';
 export * from './directExpense';
 export * from './directExpenseBody';

@@ -865,6 +865,25 @@ components:
         sharePercentage:
           type: number
 
+    DashboardPartner:
+      type: object
+      required: [id, name, sharePercentage, investmentTotal, directExpenseTotal, pettyCashTotal, totalContribution]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        sharePercentage:
+          type: number
+        investmentTotal:
+          type: number
+        directExpenseTotal:
+          type: number
+        pettyCashTotal:
+          type: number
+        totalContribution:
+          type: number
+
     DashboardSummary:
       type: object
       required:
@@ -891,7 +910,7 @@ components:
         partners:
           type: array
           items:
-            $ref: "#/components/schemas/Partner"
+            $ref: "#/components/schemas/DashboardPartner"
 
     Backup:
       type: object

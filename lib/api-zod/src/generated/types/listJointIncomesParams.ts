@@ -13,10 +13,6 @@ export type ListJointIncomesParams = {
  */
 search?: string;
 /**
- * Filter by income type (Rent, Office Sale, Flat Sale, Other)
- */
-incomeType?: string;
-/**
  * Filter from date (YYYY-MM-DD)
  */
 dateFrom?: string;

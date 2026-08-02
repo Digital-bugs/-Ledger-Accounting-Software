@@ -41,7 +41,11 @@ export const GetDashboardSummaryResponse = zod.object({
   "partners": zod.array(zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "sharePercentage": zod.number()
+  "sharePercentage": zod.number(),
+  "investmentTotal": zod.number(),
+  "directExpenseTotal": zod.number(),
+  "pettyCashTotal": zod.number(),
+  "totalContribution": zod.number()
 }))
 })
 
@@ -540,7 +544,7 @@ export const DeleteAccountantExpenseResponse = zod.void()
 
 
 /**
- * @summary Get joint income totals
+ * @summary Get joint income totals by income type
  */
 export const GetJointIncomeSummaryResponse = zod.object({
   "combinedTotal": zod.number()
