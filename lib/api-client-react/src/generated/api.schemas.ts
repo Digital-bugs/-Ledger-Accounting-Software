@@ -202,6 +202,14 @@ export const BulkImportInputModule = {
   'joint-incomes': 'joint-incomes',
 } as const;
 
+export type BulkImportInputDuplicateAction = typeof BulkImportInputDuplicateAction[keyof typeof BulkImportInputDuplicateAction];
+
+
+export const BulkImportInputDuplicateAction = {
+  skip: 'skip',
+  replace: 'replace',
+} as const;
+
 export interface ImportRow {
   /** @nullable */
   receiptNumber?: string | null;
@@ -218,6 +226,7 @@ export interface ImportRow {
 export interface BulkImportInput {
   module: BulkImportInputModule;
   rows: ImportRow[];
+  duplicateAction?: BulkImportInputDuplicateAction;
 }
 
 export type FinalSummaryResultSettlementDirection = typeof FinalSummaryResultSettlementDirection[keyof typeof FinalSummaryResultSettlementDirection];
@@ -257,6 +266,35 @@ export interface FinalSummaryResult {
   hasData: boolean;
 }
 
+export type DuplicateCheckItemModule = typeof DuplicateCheckItemModule[keyof typeof DuplicateCheckItemModule];
+
+
+export const DuplicateCheckItemModule = {
+  investments: 'investments',
+  'direct-expenses': 'direct-expenses',
+  'petty-cash-given': 'petty-cash-given',
+  'accountant-expenses': 'accountant-expenses',
+  'joint-incomes': 'joint-incomes',
+} as const;
+
+export interface DuplicateCheckItem {
+  module: DuplicateCheckItemModule;
+  receiptNumbers: string[];
+}
+
+export interface DuplicateCheckInput {
+  checks: DuplicateCheckItem[];
+}
+
+export interface DuplicateCheckModuleResult {
+  module: string;
+  existingReceiptNumbers: string[];
+}
+
+export interface DuplicateCheckResult {
+  results: DuplicateCheckModuleResult[];
+}
+
 export interface ImportRowError {
   row: number;
   message: string;
@@ -264,6 +302,7 @@ export interface ImportRowError {
 
 export interface BulkImportResult {
   imported: number;
+  replaced: number;
   skipped: number;
   errors: ImportRowError[];
 }
@@ -359,6 +398,17 @@ export interface RestoreResult {
   success: boolean;
   message: string;
 }
+
+export type GetDashboardSummaryParams = {
+/**
+ * Filter from date (YYYY-MM-DD)
+ */
+dateFrom?: string;
+/**
+ * Filter to date (YYYY-MM-DD)
+ */
+dateTo?: string;
+};
 
 export type ListInvestmentsParams = {
 /**

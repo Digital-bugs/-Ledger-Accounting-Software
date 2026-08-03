@@ -5,10 +5,12 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { BulkImportInputDuplicateAction } from './bulkImportInputDuplicateAction';
 import type { BulkImportInputModule } from './bulkImportInputModule';
 import type { ImportRow } from './importRow';
 
 export interface BulkImportInput {
   module: BulkImportInputModule;
   rows: ImportRow[];
+  duplicateAction?: BulkImportInputDuplicateAction;
 }

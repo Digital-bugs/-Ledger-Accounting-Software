@@ -61,6 +61,15 @@ paths:
       operationId: getDashboardSummary
       tags: [dashboard]
       summary: Get dashboard financial summary totals
+      parameters:
+        - name: dateFrom
+          in: query
+          schema: { type: string }
+          description: Filter from date (YYYY-MM-DD)
+        - name: dateTo
+          in: query
+          schema: { type: string }
+          description: Filter to date (YYYY-MM-DD)
       responses:
         "200":
           description: Dashboard summary with all totals
@@ -800,6 +809,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/BulkImportResult"
 
+  /excel-import/check-duplicates:
+    post:
+      operationId: checkImportDuplicates
+      tags: [excel-import]
+      summary: Check which receipt numbers already exist in the database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DuplicateCheckInput"
+      responses:
+        "200":
+          description: Existing receipt numbers grouped by module
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateCheckResult"
+
   /reports/monthly-data:
     get:
       operationId: getReportsMonthlyData
@@ -1224,6 +1252,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ImportRow"
+        duplicateAction:
+          type: string
+          enum: [skip, replace]
 
     ImportRow:
       type: object
@@ -1299,11 +1330,54 @@ components:
         settlementText:    { type: string }
         hasData:           { type: boolean }
 
+    DuplicateCheckItem:
+      type: object
+      required: [module, receiptNumbers]
+      properties:
+        module:
+          type: string
+          enum: [investments, direct-expenses, petty-cash-given, accountant-expenses, joint-incomes]
+        receiptNumbers:
+          type: array
+          items:
+            type: string
+
+    DuplicateCheckInput:
+      type: object
+      required: [checks]
+      properties:
+        checks:
+          type: array
+          items:
+            $ref: "#/components/schemas/DuplicateCheckItem"
+
+    DuplicateCheckModuleResult:
+      type: object
+      required: [module, existingReceiptNumbers]
+      properties:
+        module:
+          type: string
+        existingReceiptNumbers:
+          type: array
+          items:
+            type: string
+
+    DuplicateCheckResult:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/DuplicateCheckModuleResult"
+
     BulkImportResult:
       type: object
-      required: [imported, skipped, errors]
+      required: [imported, replaced, skipped, errors]
       properties:
         imported:
+          type: number
+        replaced:
           type: number
         skipped:
           type: number

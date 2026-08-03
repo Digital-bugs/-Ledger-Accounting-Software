@@ -31,6 +31,11 @@ export const ListPartnersResponse = zod.array(ListPartnersResponseItem)
 /**
  * @summary Get dashboard financial summary totals
  */
+export const GetDashboardSummaryQueryParams = zod.object({
+  "dateFrom": zod.coerce.string().optional().describe('Filter from date (YYYY-MM-DD)'),
+  "dateTo": zod.coerce.string().optional().describe('Filter to date (YYYY-MM-DD)')
+})
+
 export const GetDashboardSummaryResponse = zod.object({
   "totalInvestments": zod.number(),
   "totalDirectExpenses": zod.number(),
@@ -687,15 +692,35 @@ export const BulkImportBody = zod.object({
   "partnerId": zod.number().nullish(),
   "incomeType": zod.string().nullish(),
   "amount": zod.number()
-}))
+})),
+  "duplicateAction": zod.enum(['skip', 'replace']).optional()
 })
 
 export const BulkImportResponse = zod.object({
   "imported": zod.number(),
+  "replaced": zod.number(),
   "skipped": zod.number(),
   "errors": zod.array(zod.object({
   "row": zod.number(),
   "message": zod.string()
+}))
+})
+
+
+/**
+ * @summary Check which receipt numbers already exist in the database
+ */
+export const CheckImportDuplicatesBody = zod.object({
+  "checks": zod.array(zod.object({
+  "module": zod.enum(['investments', 'direct-expenses', 'petty-cash-given', 'accountant-expenses', 'joint-incomes']),
+  "receiptNumbers": zod.array(zod.string())
+}))
+})
+
+export const CheckImportDuplicatesResponse = zod.object({
+  "results": zod.array(zod.object({
+  "module": zod.string(),
+  "existingReceiptNumbers": zod.array(zod.string())
 }))
 })
 

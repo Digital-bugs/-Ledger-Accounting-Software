@@ -9,6 +9,7 @@ import type { ImportRowError } from './importRowError';
 
 export interface BulkImportResult {
   imported: number;
+  replaced: number;
   skipped: number;
   errors: ImportRowError[];
 }

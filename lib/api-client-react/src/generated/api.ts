@@ -35,7 +35,10 @@ import type {
   DirectExpenseBody,
   DirectExpenseSummary,
   DirectExpensesPage,
+  DuplicateCheckInput,
+  DuplicateCheckResult,
   FinalSummaryResult,
+  GetDashboardSummaryParams,
   GetFinalSummaryParams,
   GetReportsAnalyticsParams,
   GetReportsMonthlyDataParams,
@@ -246,20 +249,27 @@ export function useListPartners<TData = Awaited<ReturnType<typeof listPartners>>
 
 
 
-export const getGetDashboardSummaryUrl = () => {
+export const getGetDashboardSummaryUrl = (params?: GetDashboardSummaryParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/dashboard/summary`
+  return stringifiedParams.length > 0 ? `/api/dashboard/summary?${stringifiedParams}` : `/api/dashboard/summary`
 }
 
 /**
  * @summary Get dashboard financial summary totals
  */
-export const getDashboardSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<DashboardSummary> => {
+export const getDashboardSummary = async (params?: GetDashboardSummaryParams, options?: Parameters<typeof customFetch>[1]): Promise<DashboardSummary> => {
 
-  return customFetch<DashboardSummary>(getGetDashboardSummaryUrl(),
+  return customFetch<DashboardSummary>(getGetDashboardSummaryUrl(params),
   {
     ...options,
     method: 'GET'
@@ -272,23 +282,23 @@ export const getDashboardSummary = async ( options?: Parameters<typeof customFet
 
 
 
-export const getGetDashboardSummaryQueryKey = () => {
+export const getGetDashboardSummaryQueryKey = (params?: GetDashboardSummaryParams,) => {
     return [
-    `/api/dashboard/summary`
+    `/api/dashboard/summary`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetDashboardSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetDashboardSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardSummary>>, TError = ErrorType<unknown>>(params?: GetDashboardSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDashboardSummaryQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardSummaryQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardSummary>>> = ({ signal }) => getDashboardSummary({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardSummary>>> = ({ signal }) => getDashboardSummary(params, { signal, ...requestOptions });
 
 
 
@@ -306,11 +316,11 @@ export type GetDashboardSummaryQueryError = ErrorType<unknown>
  */
 
 export function useGetDashboardSummary<TData = Awaited<ReturnType<typeof getDashboardSummary>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: GetDashboardSummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetDashboardSummaryQueryOptions(options)
+  const queryOptions = getGetDashboardSummaryQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -2866,6 +2876,77 @@ export const useBulkImport = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getBulkImportMutationOptions(options));
+    }
+
+export const getCheckImportDuplicatesUrl = () => {
+
+
+
+
+  return `/api/excel-import/check-duplicates`
+}
+
+/**
+ * @summary Check which receipt numbers already exist in the database
+ */
+export const checkImportDuplicates = async (duplicateCheckInput: DuplicateCheckInput, options?: Parameters<typeof customFetch>[1]): Promise<DuplicateCheckResult> => {
+
+  return customFetch<DuplicateCheckResult>(getCheckImportDuplicatesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(duplicateCheckInput)
+  }
+);}
+
+
+
+
+
+export const getCheckImportDuplicatesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkImportDuplicates>>, TError,{data: BodyType<DuplicateCheckInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof checkImportDuplicates>>, TError,{data: BodyType<DuplicateCheckInput>}, TContext> => {
+
+const mutationKey = ['checkImportDuplicates'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkImportDuplicates>>, {data: BodyType<DuplicateCheckInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  checkImportDuplicates(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckImportDuplicatesMutationResult = NonNullable<Awaited<ReturnType<typeof checkImportDuplicates>>>
+    export type CheckImportDuplicatesMutationBody = BodyType<DuplicateCheckInput>
+    export type CheckImportDuplicatesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Check which receipt numbers already exist in the database
+ */
+export const useCheckImportDuplicates = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkImportDuplicates>>, TError,{data: BodyType<DuplicateCheckInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof checkImportDuplicates>>,
+        TError,
+        {data: BodyType<DuplicateCheckInput>},
+        TContext
+      > => {
+      return useMutation(getCheckImportDuplicatesMutationOptions(options));
     }
 
 export const getGetReportsMonthlyDataUrl = (params?: GetReportsMonthlyDataParams,) => {

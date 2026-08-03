@@ -1,34 +1,21 @@
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useBulkImport,
+  useCheckImportDuplicates,
   useListPartners,
-  BulkImportInputModule,
 } from '@workspace/api-client-react';
-import type {
-  BulkImportResult,
-  BulkImportInput,
-  ImportRow,
-  Partner,
-} from '@workspace/api-client-react';
+import type { Partner, BulkImportResult } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
@@ -38,979 +25,1030 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import {
-  Upload,
+  Download,
   FileSpreadsheet,
-  ClipboardPaste,
   CheckCircle2,
   XCircle,
-  AlertCircle,
-  RotateCcw,
-  ChevronLeft,
-  ChevronRight,
+  AlertTriangle,
   Loader2,
+  RotateCcw,
+  CheckCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ImportModule =
+type ModuleKey =
   | 'investments'
   | 'direct-expenses'
   | 'petty-cash-given'
   | 'accountant-expenses'
   | 'joint-incomes';
 
-interface ModuleOption {
-  value: ImportModule;
-  label: string;
+type DuplicateAction = 'skip' | 'replace';
+type Phase = 'idle' | 'loading' | 'preview' | 'importing' | 'done';
+
+interface ColumnSpec {
+  field: string;
+  header: string;
+  aliases: string[];
+  required: boolean;
+  display: boolean; // show in preview table
+}
+
+interface SheetSpec {
+  sheetName: string;
+  module: ModuleKey;
+  moduleLabel: string;
+  columns: ColumnSpec[];
   requiresPartner: boolean;
   requiresIncomeType: boolean;
 }
 
-const MODULE_OPTIONS: ModuleOption[] = [
-  {
-    value: 'investments',
-    label: 'Partner Investments',
-    requiresPartner: true,
-    requiresIncomeType: false,
-  },
-  {
-    value: 'direct-expenses',
-    label: 'Partner Direct Expenses',
-    requiresPartner: true,
-    requiresIncomeType: false,
-  },
-  {
-    value: 'petty-cash-given',
-    label: 'Petty Cash Given',
-    requiresPartner: true,
-    requiresIncomeType: false,
-  },
-  {
-    value: 'accountant-expenses',
-    label: 'Accountant Expenses',
-    requiresPartner: false,
-    requiresIncomeType: false,
-  },
-  {
-    value: 'joint-incomes',
-    label: 'Joint Company Income',
-    requiresPartner: false,
-    requiresIncomeType: true,
-  },
-];
-
-const INCOME_TYPES = ['Rent', 'Office Sale', 'Flat Sale', 'Other'];
-const PAGE_SIZE = 50;
-
-interface FieldDef {
-  key: string;
-  label: string;
-  required: boolean;
-}
-
-interface ValidatedRow {
+interface ParsedRow {
   rowNum: number;
-  cells: string[];
   receiptNumber: string;
   entryDate: string;
   description: string;
   partnerId: number | null;
+  partnerName: string;
   incomeType: string;
   amount: number;
   errors: string[];
-  valid: boolean;
-  empty: boolean;
+  isValid: boolean;
+  isDuplicate: boolean;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+interface ModuleParsedData {
+  spec: SheetSpec;
+  rows: ParsedRow[];
+}
 
-function colLetter(i: number): string {
-  let s = '';
-  let n = i + 1;
-  while (n > 0) {
-    s = String.fromCharCode(64 + ((n - 1) % 26 + 1)) + s;
-    n = Math.floor((n - 1) / 26);
+interface ModuleImportResult {
+  module: ModuleKey;
+  label: string;
+  result: BulkImportResult;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const INCOME_TYPES = ['Rent', 'Office Sale', 'Flat Sale', 'Other'] as const;
+
+const SHEET_SPECS: SheetSpec[] = [
+  {
+    sheetName: 'Partner Investments',
+    module: 'investments',
+    moduleLabel: 'Partner Investments',
+    requiresPartner: true,
+    requiresIncomeType: false,
+    columns: [
+      { field: 'receiptNumber', header: 'Receipt Number', aliases: ['receipt number', 'receipt no', 'receipt#', 'sr no', 'sl no', 'voucher no'], required: false, display: true },
+      { field: 'entryDate',    header: 'Date',           aliases: ['date', 'entry date', 'transaction date'],                                    required: true,  display: true },
+      { field: 'description',  header: 'Description',    aliases: ['description', 'desc', 'particulars', 'narration', 'details', 'remarks'],     required: false, display: true },
+      { field: 'partner',      header: 'Partner',        aliases: ['partner', 'partner name', 'investor', 'person'],                             required: true,  display: true },
+      { field: 'amount',       header: 'Amount',         aliases: ['amount', 'amt', 'rs', 'value', 'total'],                                     required: true,  display: true },
+    ],
+  },
+  {
+    sheetName: 'Partner Direct Expenses',
+    module: 'direct-expenses',
+    moduleLabel: 'Partner Direct Expenses',
+    requiresPartner: true,
+    requiresIncomeType: false,
+    columns: [
+      { field: 'receiptNumber', header: 'Receipt Number', aliases: ['receipt number', 'receipt no', 'receipt#', 'sr no', 'sl no', 'voucher no'], required: false, display: true },
+      { field: 'entryDate',    header: 'Date',           aliases: ['date', 'entry date', 'transaction date'],                                    required: true,  display: true },
+      { field: 'description',  header: 'Description',    aliases: ['description', 'desc', 'particulars', 'narration', 'details', 'remarks'],     required: false, display: true },
+      { field: 'partner',      header: 'Partner',        aliases: ['partner', 'partner name', 'investor', 'person'],                             required: true,  display: true },
+      { field: 'amount',       header: 'Amount',         aliases: ['amount', 'amt', 'rs', 'value', 'total'],                                     required: true,  display: true },
+    ],
+  },
+  {
+    sheetName: 'Petty Cash Given',
+    module: 'petty-cash-given',
+    moduleLabel: 'Petty Cash Given',
+    requiresPartner: true,
+    requiresIncomeType: false,
+    columns: [
+      { field: 'receiptNumber', header: 'Receipt Number', aliases: ['receipt number', 'receipt no', 'receipt#', 'sr no', 'sl no', 'voucher no'], required: false, display: true },
+      { field: 'entryDate',    header: 'Date',           aliases: ['date', 'entry date', 'transaction date'],                                    required: true,  display: true },
+      { field: 'partner',      header: 'Partner',        aliases: ['partner', 'partner name', 'investor', 'person'],                             required: true,  display: true },
+      { field: 'amount',       header: 'Amount',         aliases: ['amount', 'amt', 'rs', 'value', 'total'],                                     required: true,  display: true },
+    ],
+  },
+  {
+    sheetName: 'Accountant Expenses',
+    module: 'accountant-expenses',
+    moduleLabel: 'Accountant Expenses',
+    requiresPartner: false,
+    requiresIncomeType: false,
+    columns: [
+      { field: 'receiptNumber', header: 'Receipt Number', aliases: ['receipt number', 'receipt no', 'receipt#', 'sr no', 'sl no', 'voucher no'], required: false, display: true },
+      { field: 'entryDate',    header: 'Date',           aliases: ['date', 'entry date', 'transaction date'],                                    required: true,  display: true },
+      { field: 'description',  header: 'Description',    aliases: ['description', 'desc', 'particulars', 'narration', 'details', 'remarks'],     required: false, display: true },
+      { field: 'amount',       header: 'Amount',         aliases: ['amount', 'amt', 'rs', 'value', 'total'],                                     required: true,  display: true },
+    ],
+  },
+  {
+    sheetName: 'Joint Company Income',
+    module: 'joint-incomes',
+    moduleLabel: 'Joint Company Income',
+    requiresPartner: false,
+    requiresIncomeType: true,
+    columns: [
+      { field: 'receiptNumber', header: 'Receipt Number', aliases: ['receipt number', 'receipt no', 'receipt#', 'sr no', 'sl no', 'voucher no'], required: false, display: true },
+      { field: 'entryDate',    header: 'Date',           aliases: ['date', 'entry date', 'transaction date'],                                    required: true,  display: true },
+      { field: 'incomeType',   header: 'Source',         aliases: ['source', 'income type', 'type', 'category'],                                required: true,  display: true },
+      { field: 'description',  header: 'Description',    aliases: ['description', 'desc', 'particulars', 'narration', 'details', 'remarks'],     required: false, display: true },
+      { field: 'amount',       header: 'Amount',         aliases: ['amount', 'amt', 'rs', 'value', 'total'],                                     required: true,  display: true },
+    ],
+  },
+];
+
+// ─── Template Generation ──────────────────────────────────────────────────────
+
+function downloadTemplate(partners: Partner[]): void {
+  const wb = XLSX.utils.book_new();
+  const p1 = partners[0]?.name ?? 'Yasir';
+  const p2 = partners[1]?.name ?? 'Khurram';
+
+  const sheets: { name: string; headers: string[]; examples: (string | number)[][] }[] = [
+    {
+      name: 'Partner Investments',
+      headers: ['Receipt Number', 'Date', 'Description', 'Partner', 'Amount'],
+      examples: [
+        ['INV-001', '2026-01-15', 'Capital investment - Jan', p1, 50000],
+        ['INV-002', '2026-01-20', 'Capital investment - Jan', p2, 75000],
+      ],
+    },
+    {
+      name: 'Partner Direct Expenses',
+      headers: ['Receipt Number', 'Date', 'Description', 'Partner', 'Amount'],
+      examples: [
+        ['EXP-001', '2026-01-10', 'Office supplies', p1, 5000],
+        ['EXP-002', '2026-01-18', 'Furniture purchase', p2, 12000],
+      ],
+    },
+    {
+      name: 'Petty Cash Given',
+      headers: ['Receipt Number', 'Date', 'Partner', 'Amount'],
+      examples: [
+        ['PC-001', '2026-01-05', p1, 10000],
+        ['PC-002', '2026-01-12', p2, 15000],
+      ],
+    },
+    {
+      name: 'Accountant Expenses',
+      headers: ['Receipt Number', 'Date', 'Description', 'Amount'],
+      examples: [
+        ['ACE-001', '2026-01-08', 'Utility bills', 3000],
+        ['ACE-002', '2026-01-22', 'Stationery & printing', 800],
+      ],
+    },
+    {
+      name: 'Joint Company Income',
+      headers: ['Receipt Number', 'Date', 'Source', 'Description', 'Amount'],
+      examples: [
+        ['JI-001', '2026-01-01', 'Rent', 'Monthly office rent', 100000],
+        ['JI-002', '2026-01-15', 'Flat Sale', 'Unit 4B sale proceeds', 2500000],
+      ],
+    },
+  ];
+
+  for (const { name, headers, examples } of sheets) {
+    const aoa: (string | number)[][] = [headers, ...examples];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = headers.map(() => ({ wch: 24 }));
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+    XLSX.utils.book_append_sheet(wb, ws, name);
   }
-  return s;
+
+  XLSX.writeFile(wb, 'crown-king-import-template.xlsx');
 }
 
-function parseDate(val: string): string | null {
-  if (!val?.trim()) return null;
-  const v = val.trim();
-  // YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-  // MM/DD/YYYY or DD/MM/YYYY
-  const slash = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+// ─── Parsing Utilities ────────────────────────────────────────────────────────
+
+function parseExcelDate(val: unknown): string | null {
+  if (val == null || val === '') return null;
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return null;
+    return val.toISOString().slice(0, 10);
+  }
+  // Excel serial date number
+  if (typeof val === 'number') {
+    try {
+      const d = XLSX.SSF.parse_date_code(val);
+      if (d) {
+        const m = String(d.m).padStart(2, '0');
+        const day = String(d.d).padStart(2, '0');
+        return `${d.y}-${m}-${day}`;
+      }
+    } catch {
+      // fall through to string parsing
+    }
+  }
+  const s = String(val).trim();
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // DD/MM/YYYY
+  const slash = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (slash) {
     const [, a, b, yr] = slash;
     const year = yr.length === 2 ? `20${yr}` : yr;
-    return `${year}-${a.padStart(2, '0')}-${b.padStart(2, '0')}`;
+    const day = parseInt(a, 10) > 12 ? a : b;
+    const month = parseInt(a, 10) > 12 ? b : a;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
   // DD-MM-YYYY
-  const dash = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  const dash = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
   if (dash) {
     const [, d, m, y] = dash;
     return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
-  // Fallback via Date parse
-  const parsed = new Date(v);
-  if (!isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
   return null;
 }
 
-function parseAmount(val: string): number | null {
-  if (!val?.trim()) return null;
-  const n = parseFloat(val.replace(/[,\s$£€₹]/g, '').trim());
+function parseAmount(val: unknown): number | null {
+  if (val == null || val === '') return null;
+  if (typeof val === 'number') return isNaN(val) ? null : val;
+  const s = String(val).replace(/[,\s₹Rs$£€]/gi, '').trim();
+  if (!s) return null;
+  const n = parseFloat(s);
   return isNaN(n) ? null : n;
 }
 
-function autoDetectColumns(headers: string[]): Record<string, number | null> {
-  const map: Record<string, number | null> = {
-    receiptNumber: null,
-    entryDate: null,
-    description: null,
-    partner: null,
-    incomeType: null,
-    amount: null,
-  };
-  headers.forEach((h, i) => {
-    const n = (h ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (
-      ['receipt', 'receiptno', 'receiptnum', 'srno', 'slno', 'voucher', 'voucherno'].some(
-        (k) => n.includes(k)
-      )
-    )
-      map.receiptNumber ??= i;
-    else if (
-      ['date', 'entrydate', 'transdate', 'dt'].some((k) => n.includes(k))
-    )
-      map.entryDate ??= i;
-    else if (
-      ['desc', 'description', 'narration', 'particulars', 'details', 'remarks'].some(
-        (k) => n.includes(k)
-      )
-    )
-      map.description ??= i;
-    else if (
-      ['partner', 'partnername', 'investor', 'person'].some((k) => n.includes(k))
-    )
-      map.partner ??= i;
-    else if (
-      ['incometype', 'type', 'category', 'source'].some((k) => n.includes(k))
-    )
-      map.incomeType ??= i;
-    else if (
-      ['amount', 'amt', 'value', 'rs', 'total', 'credit', 'debit'].some(
-        (k) => n.includes(k)
-      )
-    )
-      map.amount ??= i;
-  });
-  return map;
+function findColumn(headers: string[], aliases: string[]): number {
+  for (let i = 0; i < headers.length; i++) {
+    const h = (headers[i] ?? '').trim().toLowerCase();
+    if (aliases.includes(h)) return i;
+  }
+  return -1;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+function parseSheet(ws: XLSX.WorkSheet, spec: SheetSpec, partners: Partner[]): ParsedRow[] {
+  const raw = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+    header: 1,
+    raw: true,
+    cellDates: true,
+    defval: '',
+  } as Parameters<typeof XLSX.utils.sheet_to_json>[1]);
+
+  if (raw.length < 2) return [];
+
+  const headerRow = (raw[0] as unknown[]).map((h) => String(h ?? '').trim().toLowerCase());
+  const colIdx: Record<string, number> = {};
+  for (const col of spec.columns) {
+    colIdx[col.field] = findColumn(headerRow, col.aliases);
+  }
+
+  const rows: ParsedRow[] = [];
+
+  for (let i = 1; i < raw.length; i++) {
+    const cells = raw[i] as unknown[];
+    const rowNum = i + 1; // row 1 is header; data starts at row 2
+
+    const isEmpty = cells.every((c) => c == null || String(c).trim() === '');
+    if (isEmpty) continue;
+
+    const get = (field: string): unknown => {
+      const idx = colIdx[field];
+      return idx >= 0 ? cells[idx] : '';
+    };
+
+    const errors: string[] = [];
+
+    // Receipt Number (optional)
+    const receiptNumber = String(get('receiptNumber') ?? '').trim();
+
+    // Date (required)
+    const rawDate = get('entryDate');
+    const entryDate = parseExcelDate(rawDate);
+    if (!entryDate) {
+      errors.push(`Invalid date "${rawDate}" — use YYYY-MM-DD (e.g. 2026-01-15)`);
+    }
+
+    // Description (optional)
+    const description = String(get('description') ?? '').trim();
+
+    // Partner (required for partner modules)
+    let partnerId: number | null = null;
+    let partnerName = '';
+    if (spec.requiresPartner) {
+      partnerName = String(get('partner') ?? '').trim();
+      if (!partnerName) {
+        errors.push('Partner is required');
+      } else {
+        const found = partners.find(
+          (p) => p.name.toLowerCase() === partnerName.toLowerCase()
+        );
+        if (!found) {
+          errors.push(
+            `Unknown partner "${partnerName}" — valid names: ${partners.map((p) => p.name).join(', ')}`
+          );
+        } else {
+          partnerId = found.id;
+          partnerName = found.name;
+        }
+      }
+    }
+
+    // Source / Income Type (required for joint-incomes)
+    let incomeType = '';
+    if (spec.requiresIncomeType) {
+      const rawType = String(get('incomeType') ?? '').trim();
+      if (!rawType) {
+        errors.push('Source is required');
+      } else {
+        const matched = (INCOME_TYPES as readonly string[]).find(
+          (t) => t.toLowerCase() === rawType.toLowerCase()
+        );
+        if (!matched) {
+          errors.push(
+            `Invalid source "${rawType}" — must be one of: ${INCOME_TYPES.join(', ')}`
+          );
+        } else {
+          incomeType = matched;
+        }
+      }
+    }
+
+    // Amount (required)
+    const rawAmount = get('amount');
+    const amount = parseAmount(rawAmount);
+    if (amount === null) {
+      errors.push(`Invalid amount "${rawAmount}" — must be a number`);
+    } else if (amount < 0) {
+      errors.push('Amount must be non-negative');
+    }
+
+    rows.push({
+      rowNum,
+      receiptNumber,
+      entryDate: entryDate ?? String(rawDate ?? ''),
+      description,
+      partnerId,
+      partnerName,
+      incomeType,
+      amount: amount ?? 0,
+      errors,
+      isValid: errors.length === 0,
+      isDuplicate: false,
+    });
+  }
+
+  return rows;
+}
+
+function parseWorkbook(wb: XLSX.WorkBook, partners: Partner[]): ModuleParsedData[] {
+  const result: ModuleParsedData[] = [];
+  for (const spec of SHEET_SPECS) {
+    const sheetName =
+      wb.SheetNames.find((n) => n.trim() === spec.sheetName) ??
+      wb.SheetNames.find((n) =>
+        n.trim().toLowerCase().includes(spec.sheetName.split(' ')[0].toLowerCase())
+      );
+    if (!sheetName) continue;
+    const rows = parseSheet(wb.Sheets[sheetName], spec, partners);
+    if (rows.length > 0) result.push({ spec, rows });
+  }
+  return result;
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function RowStatusIcon({ row }: { row: ParsedRow }) {
+  if (!row.isValid) return <XCircle className="h-3.5 w-3.5 text-destructive flex-shrink-0" />;
+  if (row.isDuplicate) return <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />;
+  return <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />;
+}
+
+function ModuleTab({ data, duplicateAction }: { data: ModuleParsedData; duplicateAction: DuplicateAction }) {
+  const valid = data.rows.filter((r) => r.isValid && !r.isDuplicate).length;
+  const invalid = data.rows.filter((r) => !r.isValid).length;
+  const dupes = data.rows.filter((r) => r.isValid && r.isDuplicate).length;
+  const cols = data.spec.columns.filter((c) => c.display);
+
+  return (
+    <div className="space-y-3">
+      {/* Module stats row */}
+      <div className="flex flex-wrap gap-2 text-xs">
+        <span className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted font-medium text-muted-foreground">
+          {data.rows.length} rows
+        </span>
+        <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 font-medium">
+          <CheckCircle2 className="h-3 w-3" />
+          {valid} valid
+        </span>
+        {invalid > 0 && (
+          <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-destructive/10 text-destructive font-medium">
+            <XCircle className="h-3 w-3" />
+            {invalid} invalid
+          </span>
+        )}
+        {dupes > 0 && (
+          <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 font-medium">
+            <AlertTriangle className="h-3 w-3" />
+            {dupes} {duplicateAction === 'replace' ? 'will replace' : 'will skip'} (duplicate)
+          </span>
+        )}
+      </div>
+
+      {/* Row table */}
+      <div className="rounded-md border overflow-x-auto max-h-72 overflow-y-auto">
+        <Table>
+          <TableHeader className="sticky top-0 bg-background z-10">
+            <TableRow>
+              <TableHead className="w-12 text-center text-xs">Row</TableHead>
+              <TableHead className="w-7" />
+              {cols.map((c) => (
+                <TableHead key={c.field} className="text-xs whitespace-nowrap">
+                  {c.header}
+                </TableHead>
+              ))}
+              <TableHead className="text-xs">Errors</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.rows.map((row) => (
+              <TableRow
+                key={row.rowNum}
+                className={cn(
+                  !row.isValid && 'bg-destructive/5 hover:bg-destructive/8',
+                  row.isValid && row.isDuplicate && 'bg-amber-50/60 dark:bg-amber-950/20 hover:bg-amber-50 dark:hover:bg-amber-950/30'
+                )}
+              >
+                <TableCell className="text-center text-xs text-muted-foreground">{row.rowNum}</TableCell>
+                <TableCell>
+                  <RowStatusIcon row={row} />
+                </TableCell>
+                {cols.map((c) => {
+                  let val = '';
+                  if (c.field === 'receiptNumber') val = row.receiptNumber;
+                  else if (c.field === 'entryDate') val = row.entryDate;
+                  else if (c.field === 'description') val = row.description;
+                  else if (c.field === 'partner') val = row.partnerName;
+                  else if (c.field === 'incomeType') val = row.incomeType;
+                  else if (c.field === 'amount') val = row.amount ? row.amount.toLocaleString() : '';
+                  return (
+                    <TableCell key={c.field} className="text-xs max-w-40 truncate">
+                      {val || <span className="text-muted-foreground/50">—</span>}
+                    </TableCell>
+                  );
+                })}
+                <TableCell className="text-xs text-destructive max-w-64">
+                  {row.errors.map((e, i) => (
+                    <div key={i} className="truncate">{e}</div>
+                  ))}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export function ExcelImport() {
   const queryClient = useQueryClient();
   const { data: partnerList = [] } = useListPartners();
   const partners = partnerList as Partner[];
   const bulkImportMutation = useBulkImport();
+  const checkDupsMutation = useCheckImportDuplicates();
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  const [selectedModule, setSelectedModule] =
-    useState<ImportModule>('investments');
-  const [inputMethod, setInputMethod] = useState<'file' | 'paste'>('file');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [phase, setPhase] = useState<Phase>('idle');
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState('');
-  const [pasteText, setPasteText] = useState('');
-  const [rawData, setRawData] = useState<string[][]>([]);
-  const [hasHeader, setHasHeader] = useState(true);
-  const [colMap, setColMap] = useState<Record<string, number | null>>({});
-  const [validatedRows, setValidatedRows] = useState<ValidatedRow[]>([]);
-  const [previewPage, setPreviewPage] = useState(0);
-  const [showOnlyErrors, setShowOnlyErrors] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState(0);
-  const [importResult, setImportResult] = useState<BulkImportResult | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [parsedModules, setParsedModules] = useState<ModuleParsedData[]>([]);
+  const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>('skip');
+  const [activeTab, setActiveTab] = useState('');
+  const [importResults, setImportResults] = useState<ModuleImportResult[]>([]);
+  const [importError, setImportError] = useState<string | null>(null);
 
-  const moduleConfig = MODULE_OPTIONS.find((m) => m.value === selectedModule)!;
-
-  // ── Derived ────────────────────────────────────────────────────────────────
-  const columns = useMemo(() => {
-    if (!rawData.length) return [];
-    const maxCols = Math.max(...rawData.slice(0, 10).map((r) => r.length), 0);
-    return Array.from({ length: maxCols }, (_, i) => ({
-      index: i,
-      label:
-        hasHeader && rawData[0]?.[i]?.trim()
-          ? rawData[0][i].trim()
-          : `Col ${colLetter(i)}`,
-    }));
-  }, [rawData, hasHeader]);
-
-  const relevantFields = useMemo((): FieldDef[] => {
-    return [
-      { key: 'receiptNumber', label: 'Receipt Number', required: false },
-      { key: 'entryDate', label: 'Date', required: true },
-      { key: 'description', label: 'Description', required: false },
-      ...(moduleConfig.requiresPartner
-        ? [{ key: 'partner', label: 'Partner', required: true }]
-        : []),
-      ...(moduleConfig.requiresIncomeType
-        ? [{ key: 'incomeType', label: 'Income Type', required: true }]
-        : []),
-      { key: 'amount', label: 'Amount', required: true },
-    ];
-  }, [moduleConfig]);
-
-  const validRows = useMemo(
-    () => validatedRows.filter((r) => !r.empty && r.valid),
-    [validatedRows]
+  // ── Computed stats ────────────────────────────────────────────────────────
+  const totalRows = parsedModules.reduce((s, m) => s + m.rows.length, 0);
+  const validRows = parsedModules.reduce(
+    (s, m) => s + m.rows.filter((r) => r.isValid && !r.isDuplicate).length, 0
   );
-  const invalidRows = useMemo(
-    () => validatedRows.filter((r) => !r.empty && !r.valid),
-    [validatedRows]
+  const invalidRows = parsedModules.reduce(
+    (s, m) => s + m.rows.filter((r) => !r.isValid).length, 0
   );
-  const emptyCount = useMemo(
-    () => validatedRows.filter((r) => r.empty).length,
-    [validatedRows]
+  const duplicateRows = parsedModules.reduce(
+    (s, m) => s + m.rows.filter((r) => r.isValid && r.isDuplicate).length, 0
   );
+  const importableCount = duplicateAction === 'replace'
+    ? validRows + duplicateRows
+    : validRows;
 
-  const displaySource = showOnlyErrors
-    ? invalidRows
-    : validatedRows.filter((r) => !r.empty);
-  const displayRows = displaySource.slice(
-    previewPage * PAGE_SIZE,
-    (previewPage + 1) * PAGE_SIZE
-  );
-  const totalDisplayPages = Math.ceil(displaySource.length / PAGE_SIZE);
-
-  const hasData = rawData.length > 0;
-  const hasMapped = Object.values(colMap).some((v) => v !== null);
-  const hasValidated = validatedRows.length > 0;
-
-  // ── Validate rows ──────────────────────────────────────────────────────────
-  const handleValidate = useCallback(() => {
-    const dataRows = hasHeader ? rawData.slice(1) : rawData;
-    const results: ValidatedRow[] = dataRows.map((cells, idx) => {
-      const rowNum = idx + (hasHeader ? 2 : 1);
-      const empty = cells.every((c) => !c?.trim());
-      if (empty) {
-        return {
-          rowNum,
-          cells,
-          receiptNumber: '',
-          entryDate: '',
-          description: '',
-          partnerId: null,
-          incomeType: '',
-          amount: 0,
-          errors: [],
-          valid: false,
-          empty: true,
-        };
+  // ── Load file ─────────────────────────────────────────────────────────────
+  const handleFile = useCallback(
+    async (file: File) => {
+      if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+        alert('Please upload an .xlsx, .xls, or .csv file.');
+        return;
       }
+      setPhase('loading');
+      setFileName(file.name);
+      setImportError(null);
 
-      const get = (field: string) => {
-        const col = colMap[field];
-        return col !== null && col !== undefined
-          ? (cells[col] ?? '').trim()
-          : '';
-      };
+      try {
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+        const modules = parseWorkbook(wb, partners);
 
-      const errors: string[] = [];
-      const receiptNumber = get('receiptNumber');
-      const rawDateVal = get('entryDate');
-      const description = get('description');
-      const partnerName = get('partner');
-      const incomeType = get('incomeType');
-      const rawAmountVal = get('amount');
-
-      // Validate date
-      const entryDate = parseDate(rawDateVal);
-      if (!entryDate) errors.push(`Invalid date "${rawDateVal}"`);
-
-      // Validate amount
-      const amount = parseAmount(rawAmountVal);
-      if (amount === null) errors.push(`Invalid amount "${rawAmountVal}"`);
-      else if (amount < 0) errors.push('Amount must be non-negative');
-
-      // Validate partner
-      let partnerId: number | null = null;
-      if (moduleConfig.requiresPartner) {
-        if (!partnerName) {
-          errors.push('Partner is required');
-        } else {
-          const p = partners.find(
-            (x) => x.name.toLowerCase() === partnerName.toLowerCase()
+        if (modules.length === 0) {
+          setImportError(
+            'No matching sheets found. Make sure you are using the downloaded template ' +
+            `with sheets named: ${SHEET_SPECS.map((s) => s.sheetName).join(', ')}.`
           );
-          if (!p) {
-            errors.push(
-              `Unknown partner "${partnerName}" — valid: ${partners.map((x) => x.name).join(', ')}`
+          setPhase('idle');
+          return;
+        }
+
+        // Check for duplicates
+        const checks = modules
+          .map((m) => ({
+            module: m.spec.module,
+            receiptNumbers: m.rows
+              .filter((r) => r.isValid && r.receiptNumber)
+              .map((r) => r.receiptNumber),
+          }))
+          .filter((c) => c.receiptNumbers.length > 0);
+
+        let existingByModule: Record<string, Set<string>> = {};
+
+        if (checks.length > 0) {
+          const dupResult = await checkDupsMutation.mutateAsync({
+            data: { checks },
+          });
+          for (const item of dupResult.results) {
+            existingByModule[item.module] = new Set(
+              item.existingReceiptNumbers.map((r) => r.toLowerCase().trim())
             );
-          } else {
-            partnerId = p.id;
           }
         }
-      }
 
-      // Validate income type
-      if (moduleConfig.requiresIncomeType) {
-        if (!incomeType) {
-          errors.push('Income Type is required');
-        } else if (!INCOME_TYPES.includes(incomeType)) {
-          errors.push(
-            `Invalid income type "${incomeType}" — valid: ${INCOME_TYPES.join(', ')}`
-          );
-        }
-      }
+        // Apply duplicate flags
+        const markedModules: ModuleParsedData[] = modules.map((m) => {
+          const existing = existingByModule[m.spec.module] ?? new Set<string>();
+          return {
+            ...m,
+            rows: m.rows.map((row) => ({
+              ...row,
+              isDuplicate:
+                row.isValid &&
+                !!row.receiptNumber &&
+                existing.has(row.receiptNumber.toLowerCase().trim()),
+            })),
+          };
+        });
 
-      return {
-        rowNum,
-        cells,
-        receiptNumber,
-        entryDate: entryDate ?? rawDateVal,
-        description,
-        partnerId,
-        incomeType,
-        amount: amount ?? 0,
-        errors,
-        valid: errors.length === 0,
-        empty: false,
-      };
-    });
-    setValidatedRows(results);
-    setPreviewPage(0);
-    setShowOnlyErrors(false);
-  }, [rawData, hasHeader, colMap, moduleConfig, partners]);
-
-  // Auto-validate when mapping changes
-  useEffect(() => {
-    if (rawData.length > 0 && hasMapped) {
-      handleValidate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colMap, hasHeader]);
-
-  // ── Parse file ─────────────────────────────────────────────────────────────
-  const parseFile = useCallback(
-    async (file: File) => {
-      setFileName(file.name);
-      setImportResult(null);
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, {
-        type: 'array',
-        raw: false,
-        dateNF: 'YYYY-MM-DD',
-      });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, {
-        header: 1,
-        raw: false,
-        dateNF: 'YYYY-MM-DD',
-        defval: '',
-      }) as string[][];
-      const normalised = data.map((row) =>
-        row.map((c) => String(c ?? '').trim())
-      );
-      setRawData(normalised);
-      setValidatedRows([]);
-      if (normalised.length > 0 && hasHeader) {
-        setColMap(autoDetectColumns(normalised[0]));
-      } else {
-        setColMap({});
+        setParsedModules(markedModules);
+        setActiveTab(markedModules[0]?.spec.module ?? '');
+        setPhase('preview');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setImportError(`Failed to process file: ${msg}`);
+        setPhase('idle');
       }
     },
-    [hasHeader]
+    [partners, checkDupsMutation]
   );
 
-  // ── Parse paste ────────────────────────────────────────────────────────────
-  const parsePaste = useCallback(
-    (text: string) => {
-      if (!text.trim()) return;
-      const rows = text
-        .trim()
-        .split('\n')
-        .map((l) => l.split('\t').map((c) => c.trim()));
-      setRawData(rows);
-      setValidatedRows([]);
-      setImportResult(null);
-      if (rows.length > 0 && hasHeader) {
-        setColMap(autoDetectColumns(rows[0]));
-      } else {
-        setColMap({});
-      }
-    },
-    [hasHeader]
-  );
-
-  // ── Import ─────────────────────────────────────────────────────────────────
+  // ── Confirm Import ────────────────────────────────────────────────────────
   const handleImport = useCallback(async () => {
-    if (!validRows.length) return;
-    setIsImporting(true);
-    setImportProgress(10);
+    setPhase('importing');
+    setImportError(null);
+    const results: ModuleImportResult[] = [];
 
-    const progressInterval = setInterval(() => {
-      setImportProgress((prev) => (prev < 85 ? prev + 7 : prev));
-    }, 250);
+    try {
+      for (const m of parsedModules) {
+        const rowsToSend = m.rows
+          .filter((r) => r.isValid)
+          .map((r) => ({
+            receiptNumber: r.receiptNumber || null,
+            entryDate: r.entryDate,
+            description: r.description || null,
+            partnerId: r.partnerId,
+            incomeType: r.incomeType || null,
+            amount: r.amount,
+          }));
 
-    const rows: ImportRow[] = validRows.map((r) => ({
-      receiptNumber: r.receiptNumber || null,
-      entryDate: r.entryDate,
-      description: r.description || null,
-      partnerId: r.partnerId,
-      incomeType: r.incomeType || null,
-      amount: r.amount,
-    }));
+        if (rowsToSend.length === 0) continue;
 
-    bulkImportMutation.mutate(
-      {
-        data: {
-          module: selectedModule as BulkImportInput['module'],
-          rows,
-        } satisfies BulkImportInput,
-      },
-      {
-        onSuccess: (result) => {
-          clearInterval(progressInterval);
-          setImportProgress(100);
-          setImportResult(result);
-          // Invalidate all queries so dashboard and every module page refreshes
-          queryClient.invalidateQueries();
-          setTimeout(() => setIsImporting(false), 300);
-        },
-        onError: (err: unknown) => {
-          clearInterval(progressInterval);
-          setIsImporting(false);
-          setImportProgress(0);
-          console.error('Import failed', err);
-        },
+        const result = await bulkImportMutation.mutateAsync({
+          data: {
+            module: m.spec.module,
+            rows: rowsToSend,
+            duplicateAction,
+          },
+        });
+
+        results.push({ module: m.spec.module, label: m.spec.moduleLabel, result });
       }
-    );
-  }, [validRows, selectedModule, bulkImportMutation, queryClient]);
 
-  // ── Reset ──────────────────────────────────────────────────────────────────
+      setImportResults(results);
+      // Invalidate all cached queries so every page re-fetches fresh data
+      queryClient.invalidateQueries();
+      setPhase('done');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setImportError(`Import failed: ${msg}`);
+      setPhase('preview');
+    }
+  }, [parsedModules, duplicateAction, bulkImportMutation, queryClient]);
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
   const handleReset = useCallback(() => {
-    setRawData([]);
-    setColMap({});
-    setValidatedRows([]);
-    setImportResult(null);
-    setImportProgress(0);
+    setPhase('idle');
     setFileName('');
-    setPasteText('');
-    setPreviewPage(0);
+    setParsedModules([]);
+    setDuplicateAction('skip');
+    setActiveTab('');
+    setImportResults([]);
+    setImportError(null);
     if (fileRef.current) fileRef.current.value = '';
   }, []);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
+    <div className="space-y-6 max-w-5xl">
+      {/* Page Header */}
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Excel Data Import</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Excel Data Import</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Bulk-import records from Excel (.xlsx), CSV, or by pasting directly
-            from Microsoft Excel.
+            Import records from Excel directly into the database. All imported records behave
+            exactly like manually entered ones.
           </p>
         </div>
-        {hasData && (
-          <Button variant="outline" size="sm" onClick={handleReset}>
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Start Over
+        <div className="flex items-center gap-2 flex-shrink-0 pt-1">
+          {(phase === 'preview' || phase === 'done') && (
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Start Over
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => downloadTemplate(partners)}
+            disabled={partners.length === 0}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download Template
           </Button>
-        )}
+        </div>
       </div>
 
-      {/* Import result banner */}
-      {importResult && (
-        <Alert className="border-green-300 bg-green-50 dark:bg-green-950/30">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertDescription>
-            <span className="font-semibold text-green-700">
-              Import complete.
-            </span>{' '}
-            <span className="text-green-700">
-              {importResult.imported.toLocaleString()} records imported,{' '}
-              {importResult.skipped} skipped (duplicates or empty).
-            </span>
-            {importResult.errors.length > 0 && (
-              <span className="text-amber-600 ml-1">
-                {importResult.errors.length} rows had validation errors and
-                were skipped.
-              </span>
-            )}
-          </AlertDescription>
+      {/* Global error */}
+      {importError && (
+        <Alert variant="destructive">
+          <XCircle className="h-4 w-4" />
+          <AlertDescription>{importError}</AlertDescription>
         </Alert>
       )}
 
-      {/* ── Step 1: Module & Data Source ───────────────────────────────── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">
-            Step 1 — Select Module &amp; Data Source
-          </CardTitle>
-          <CardDescription>
-            Choose which ledger module to import into, then upload a file or
-            paste rows from Excel.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {/* Module selector */}
-          <div className="space-y-1.5">
-            <Label htmlFor="module-select">Import Into</Label>
-            <Select
-              value={selectedModule}
-              onValueChange={(v) => {
-                setSelectedModule(v as ImportModule);
-                handleReset();
-              }}
-            >
-              <SelectTrigger id="module-select" className="w-72">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MODULE_OPTIONS.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Input method */}
-          <Tabs
-            value={inputMethod}
-            onValueChange={(v) => {
-              setInputMethod(v as 'file' | 'paste');
-              handleReset();
-            }}
-          >
-            <TabsList>
-              <TabsTrigger value="file">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload File
-              </TabsTrigger>
-              <TabsTrigger value="paste">
-                <ClipboardPaste className="h-4 w-4 mr-2" />
-                Paste from Excel
-              </TabsTrigger>
-            </TabsList>
-
-            {/* File upload */}
-            <TabsContent value="file" className="mt-4">
-              <div
-                className={cn(
-                  'border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-colors select-none',
-                  isDragging
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/40 hover:bg-muted/30'
-                )}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                  const file = e.dataTransfer.files[0];
-                  if (file) parseFile(file);
-                }}
-                onClick={() => fileRef.current?.click()}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ')
-                    fileRef.current?.click();
-                }}
-              >
-                <FileSpreadsheet className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                <p className="text-sm font-medium">
-                  Drag &amp; drop an Excel or CSV file here
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Supports .xlsx, .xls, and .csv — up to tens of thousands of
-                  rows
-                </p>
-                {fileName && (
-                  <Badge variant="secondary" className="mt-3 text-xs">
-                    {fileName}
-                  </Badge>
-                )}
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) parseFile(f);
-                  }}
-                />
+      {/* ── Template Info Card (idle only) ───────────────────────────────── */}
+      {phase === 'idle' && (
+        <Card className="border-dashed">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground mb-2">How to import data:</p>
+                <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                  <li>Click <span className="font-medium text-foreground">Download Template</span> to get the Excel file</li>
+                  <li>Fill in your data across the 5 sheets (one per module)</li>
+                  <li>Upload the filled file below</li>
+                  <li>Review the preview and confirm the import</li>
+                </ol>
               </div>
-            </TabsContent>
-
-            {/* Paste */}
-            <TabsContent value="paste" className="mt-4 space-y-2">
-              <Label className="text-sm text-muted-foreground">
-                Select cells in Excel (including headers), copy with Ctrl+C,
-                then paste below.
-              </Label>
-              <Textarea
-                placeholder="Paste Excel data here (Ctrl+V)…"
-                className="min-h-36 font-mono text-xs resize-y"
-                value={pasteText}
-                onChange={(e) => setPasteText(e.target.value)}
-                onPaste={(e) => {
-                  const text = e.clipboardData.getData('text');
-                  // Let textarea update first, then parse
-                  setTimeout(() => parsePaste(text), 0);
-                }}
-              />
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={!pasteText.trim()}
-                onClick={() => parsePaste(pasteText)}
-              >
-                Parse Pasted Data
-              </Button>
-            </TabsContent>
-          </Tabs>
-
-          {/* Data summary row */}
-          {hasData && (
-            <div className="flex items-center gap-3 pt-1 flex-wrap">
-              <Badge variant="outline" className="text-xs">
-                {rawData.length.toLocaleString()} total rows detected
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {columns.length} columns
-              </Badge>
-              <div className="flex items-center gap-2 ml-auto">
-                <Switch
-                  id="has-header"
-                  checked={hasHeader}
-                  onCheckedChange={(v) => {
-                    setHasHeader(v);
-                    setColMap({});
-                    setValidatedRows([]);
-                  }}
-                />
-                <Label htmlFor="has-header" className="text-sm cursor-pointer">
-                  First row is header
-                </Label>
+              <div className="sm:text-right flex-shrink-0">
+                <p className="text-xs text-muted-foreground mb-1.5">Template includes:</p>
+                <div className="flex flex-wrap sm:flex-col gap-1">
+                  {SHEET_SPECS.map((s) => (
+                    <Badge key={s.module} variant="secondary" className="text-xs">
+                      {s.sheetName}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* ── Step 2: Column Mapping ──────────────────────────────────────── */}
-      {hasData && (
+      {/* ── Upload Zone ──────────────────────────────────────────────────── */}
+      {(phase === 'idle' || phase === 'loading') && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">
-              Step 2 — Map Columns
+            <CardTitle className="text-base font-semibold">Upload Filled Template</CardTitle>
+            <CardDescription>Supports .xlsx and .xls files exported from Microsoft Excel.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div
+              className={cn(
+                'border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-colors select-none',
+                isDragging
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-primary/40 hover:bg-muted/30',
+                phase === 'loading' && 'pointer-events-none opacity-60'
+              )}
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file);
+              }}
+              onClick={() => phase === 'idle' && fileRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click(); }}
+            >
+              {phase === 'loading' ? (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Parsing {fileName} and checking for duplicates…
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <FileSpreadsheet className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-sm font-medium text-foreground">
+                    Drag &amp; drop your filled template here
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    or click to browse — .xlsx and .xls supported
+                  </p>
+                </>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".xlsx,.xls"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Import Preview ────────────────────────────────────────────────── */}
+      {(phase === 'preview' || phase === 'importing') && parsedModules.length > 0 && (
+        <>
+          {/* File info + stats */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-semibold">Import Preview</CardTitle>
+                  <CardDescription className="mt-0.5 flex items-center gap-1.5">
+                    <FileSpreadsheet className="h-3.5 w-3.5" />
+                    {fileName}
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {parsedModules.length} module{parsedModules.length > 1 ? 's' : ''} detected
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-lg border bg-card p-3 text-center">
+                  <div className="text-2xl font-bold font-mono text-foreground">{totalRows}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Total Rows</div>
+                </div>
+                <div className="rounded-lg border bg-card p-3 text-center">
+                  <div className="text-2xl font-bold font-mono text-green-600">{validRows}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Valid Rows</div>
+                </div>
+                <div className={cn(
+                  "rounded-lg border bg-card p-3 text-center",
+                  invalidRows > 0 && "border-destructive/40 bg-destructive/5"
+                )}>
+                  <div className={cn("text-2xl font-bold font-mono", invalidRows > 0 ? "text-destructive" : "text-muted-foreground")}>
+                    {invalidRows}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Invalid Rows</div>
+                </div>
+                <div className={cn(
+                  "rounded-lg border bg-card p-3 text-center",
+                  duplicateRows > 0 && "border-amber-300/60 bg-amber-50/50 dark:bg-amber-950/20"
+                )}>
+                  <div className={cn("text-2xl font-bold font-mono", duplicateRows > 0 ? "text-amber-600" : "text-muted-foreground")}>
+                    {duplicateRows}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Duplicate Rows</div>
+                </div>
+              </div>
+
+              {/* Duplicate action */}
+              {duplicateRows > 0 && (
+                <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-4">
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-3">
+                    <AlertTriangle className="inline h-4 w-4 mr-1.5 align-text-top" />
+                    {duplicateRows} row{duplicateRows > 1 ? 's' : ''} already exist in the database
+                    (matched by Receipt Number). What should happen?
+                  </p>
+                  <RadioGroup
+                    value={duplicateAction}
+                    onValueChange={(v) => setDuplicateAction(v as DuplicateAction)}
+                    className="flex gap-6"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="skip" id="dup-skip" />
+                      <Label htmlFor="dup-skip" className="cursor-pointer font-medium">
+                        Skip — keep existing records, do not re-import
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="replace" id="dup-replace" />
+                      <Label htmlFor="dup-replace" className="cursor-pointer font-medium">
+                        Replace — delete existing and re-import with new values
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+
+              {/* Invalid rows notice */}
+              {invalidRows > 0 && (
+                <Alert variant="destructive" className="py-2">
+                  <XCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    {invalidRows} invalid row{invalidRows > 1 ? 's' : ''} will be skipped.
+                    Fix errors in your file and re-upload to include them.
+                    See the module tabs below for exact row numbers and reasons.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Module tabs */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Row Details by Module</CardTitle>
+              <CardDescription>
+                <span className="inline-flex items-center gap-3 text-xs">
+                  <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-500" /> Valid</span>
+                  <span className="flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-amber-500" /> Duplicate</span>
+                  <span className="flex items-center gap-1"><XCircle className="h-3 w-3 text-destructive" /> Invalid (will be skipped)</span>
+                </span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-4 flex-wrap h-auto gap-1">
+                  {parsedModules.map((m) => {
+                    const errCount = m.rows.filter((r) => !r.isValid).length;
+                    const dupCount = m.rows.filter((r) => r.isValid && r.isDuplicate).length;
+                    return (
+                      <TabsTrigger key={m.spec.module} value={m.spec.module} className="gap-1.5">
+                        {m.spec.moduleLabel}
+                        {errCount > 0 && (
+                          <Badge variant="destructive" className="h-4 px-1 text-[10px]">{errCount}</Badge>
+                        )}
+                        {dupCount > 0 && errCount === 0 && (
+                          <Badge className="h-4 px-1 text-[10px] bg-amber-500 hover:bg-amber-500">{dupCount}</Badge>
+                        )}
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+                {parsedModules.map((m) => (
+                  <TabsContent key={m.spec.module} value={m.spec.module}>
+                    <ModuleTab data={m} duplicateAction={duplicateAction} />
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* Confirm Import */}
+          <Card>
+            <CardContent className="pt-5">
+              {phase === 'importing' ? (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary flex-shrink-0" />
+                  <span>Saving records to database — please do not close this page…</span>
+                </div>
+              ) : importableCount === 0 ? (
+                <Alert variant="destructive">
+                  <XCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    No importable rows. All rows are either invalid or will be skipped as duplicates.
+                    Fix errors in your file and re-upload.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Ready to import{' '}
+                      <span className="text-primary font-bold">
+                        {importableCount.toLocaleString()} record{importableCount > 1 ? 's' : ''}
+                      </span>{' '}
+                      across{' '}
+                      {parsedModules.filter((m) =>
+                        m.rows.some((r) => r.isValid && (duplicateAction === 'replace' || !r.isDuplicate))
+                      ).length}{' '}
+                      module{parsedModules.length > 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Records save directly to the database — dashboard and all modules update instantly.
+                      {invalidRows > 0 && ` ${invalidRows} invalid rows will be skipped.`}
+                    </p>
+                  </div>
+                  <Button size="lg" onClick={handleImport} className="flex-shrink-0">
+                    <CheckCheck className="h-4 w-4 mr-2" />
+                    Confirm Import
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {/* ── Import Results ────────────────────────────────────────────────── */}
+      {phase === 'done' && importResults.length > 0 && (
+        <Card className="border-green-200 dark:border-green-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Import Complete
             </CardTitle>
             <CardDescription>
-              Assign each required field to the matching Excel column. Common
-              headers are auto-detected.
-              {moduleConfig.requiresPartner && (
-                <span className="text-amber-600 block mt-0.5">
-                  Partner must match exactly:{' '}
-                  {partners.map((p) => p.name).join(', ')}.
-                </span>
-              )}
-              {moduleConfig.requiresIncomeType && (
-                <span className="text-amber-600 block mt-0.5">
-                  Income Type must be one of: {INCOME_TYPES.join(', ')}.
-                </span>
-              )}
+              All records have been saved to the database. The dashboard, reports, and all modules
+              have been refreshed automatically.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {relevantFields.map((field) => (
-                <div key={field.key} className="space-y-1.5">
-                  <Label className="text-sm">
-                    {field.label}
-                    {field.required && (
-                      <span className="text-destructive ml-1">*</span>
+          <CardContent>
+            <div className="space-y-2">
+              {importResults.map(({ label, result }) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50 text-sm"
+                >
+                  <span className="font-medium text-foreground">{label}</span>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    {result.imported > 0 && (
+                      <span className="text-green-600 font-medium">
+                        +{result.imported} imported
+                      </span>
                     )}
-                  </Label>
-                  <Select
-                    value={
-                      colMap[field.key] !== null &&
-                      colMap[field.key] !== undefined
-                        ? String(colMap[field.key])
-                        : '__none__'
-                    }
-                    onValueChange={(v) =>
-                      setColMap((prev) => ({
-                        ...prev,
-                        [field.key]: v === '__none__' ? null : Number(v),
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="text-xs h-8">
-                      <SelectValue placeholder="— Not mapped —" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">— Not mapped —</SelectItem>
-                      {columns.map((col) => (
-                        <SelectItem
-                          key={col.index}
-                          value={String(col.index)}
-                        >
-                          {col.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    {result.replaced > 0 && (
+                      <span className="text-blue-600 font-medium">
+                        {result.replaced} replaced
+                      </span>
+                    )}
+                    {result.skipped > 0 && (
+                      <span>{result.skipped} skipped</span>
+                    )}
+                    {result.errors.length > 0 && (
+                      <span className="text-destructive">{result.errors.length} errors</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-            <Button
-              size="sm"
-              onClick={handleValidate}
-              disabled={!hasMapped}
-            >
-              Validate {hasHeader ? rawData.length - 1 : rawData.length} Rows
+
+            {/* Per-module errors from API (if any) */}
+            {importResults.some((r) => r.result.errors.length > 0) && (
+              <div className="mt-4 space-y-2">
+                <p className="text-xs font-semibold text-destructive">API validation errors:</p>
+                {importResults.flatMap(({ label, result }) =>
+                  result.errors.map((e, i) => (
+                    <div key={`${label}-${i}`} className="text-xs text-destructive bg-destructive/5 px-3 py-1 rounded">
+                      <span className="font-medium">{label}</span> — Row {e.row}: {e.message}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            <Button variant="outline" size="sm" className="mt-4" onClick={handleReset}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Import Another File
             </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ── Step 3: Preview & Validate ─────────────────────────────────── */}
-      {hasValidated && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle className="text-base font-semibold">
-                  Step 3 — Preview &amp; Validate
-                </CardTitle>
-                <CardDescription className="mt-1">
-                  Review mapped rows before importing. Fix errors in the
-                  source file and re-upload if needed.
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-3 text-sm shrink-0">
-                <span className="flex items-center gap-1.5 font-medium text-green-600">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {validRows.length.toLocaleString()} valid
-                </span>
-                {invalidRows.length > 0 && (
-                  <span className="flex items-center gap-1.5 font-medium text-destructive">
-                    <XCircle className="h-4 w-4" />
-                    {invalidRows.length} errors
-                  </span>
-                )}
-                {emptyCount > 0 && (
-                  <span className="text-muted-foreground">
-                    {emptyCount} empty
-                  </span>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {invalidRows.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="show-errors"
-                  checked={showOnlyErrors}
-                  onCheckedChange={(v) => {
-                    setShowOnlyErrors(v);
-                    setPreviewPage(0);
-                  }}
-                />
-                <Label
-                  htmlFor="show-errors"
-                  className="text-sm cursor-pointer"
-                >
-                  Show only rows with errors
-                </Label>
-              </div>
-            )}
-
-            {/* Preview table */}
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-14 text-center">Row</TableHead>
-                    <TableHead className="w-8" />
-                    {relevantFields.map((f) => (
-                      <TableHead key={f.key} className="whitespace-nowrap">
-                        {f.label}
-                      </TableHead>
-                    ))}
-                    <TableHead>Errors</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayRows.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={relevantFields.length + 3}
-                        className="text-center py-8 text-muted-foreground text-sm"
-                      >
-                        No rows to display
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    displayRows.map((row) => {
-                      const get = (field: string) => {
-                        const col = colMap[field];
-                        return col !== null && col !== undefined
-                          ? (row.cells[col] ?? '')
-                          : '';
-                      };
-                      return (
-                        <TableRow
-                          key={row.rowNum}
-                          className={cn(
-                            !row.valid && 'bg-destructive/5 hover:bg-destructive/10'
-                          )}
-                        >
-                          <TableCell className="text-center text-muted-foreground text-xs">
-                            {row.rowNum}
-                          </TableCell>
-                          <TableCell>
-                            {row.valid ? (
-                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                            ) : (
-                              <XCircle className="h-3.5 w-3.5 text-destructive" />
-                            )}
-                          </TableCell>
-                          {relevantFields.map((f) => (
-                            <TableCell
-                              key={f.key}
-                              className="text-xs max-w-36 truncate"
-                            >
-                              {get(f.key)}
-                            </TableCell>
-                          ))}
-                          <TableCell className="text-xs text-destructive max-w-56 truncate">
-                            {row.errors.join(' · ')}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Pagination */}
-            {totalDisplayPages > 1 && (
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-                <span>
-                  Page {previewPage + 1} of {totalDisplayPages} (
-                  {displaySource.length.toLocaleString()} rows)
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-6 w-6"
-                    disabled={previewPage === 0}
-                    onClick={() => setPreviewPage((p) => p - 1)}
-                  >
-                    <ChevronLeft className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-6 w-6"
-                    disabled={previewPage >= totalDisplayPages - 1}
-                    onClick={() => setPreviewPage((p) => p + 1)}
-                  >
-                    <ChevronRight className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* No valid rows warning */}
-      {hasValidated && validRows.length === 0 && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            No valid rows found. Fix the errors above and re-validate, or
-            adjust the column mapping.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* ── Step 4: Import ─────────────────────────────────────────────── */}
-      {hasValidated && validRows.length > 0 && !importResult && (
-        <Card>
-          <CardContent className="pt-6">
-            {isImporting ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  Importing{' '}
-                  {validRows.length.toLocaleString()} records into{' '}
-                  {
-                    MODULE_OPTIONS.find((m) => m.value === selectedModule)
-                      ?.label
-                  }
-                  …
-                </div>
-                <Progress value={importProgress} className="h-2" />
-                <p className="text-xs text-muted-foreground">
-                  {importProgress}% — please wait
-                </p>
-              </div>
-            ) : (
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">
-                    Ready to import{' '}
-                    <span className="text-primary font-semibold">
-                      {validRows.length.toLocaleString()} valid records
-                    </span>{' '}
-                    into{' '}
-                    {
-                      MODULE_OPTIONS.find((m) => m.value === selectedModule)
-                        ?.label
-                    }
-                    .
-                  </p>
-                  {invalidRows.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {invalidRows.length} invalid rows will be skipped.
-                      Dashboard totals update automatically after import.
-                    </p>
-                  )}
-                </div>
-                <Button
-                  onClick={handleImport}
-                  disabled={isImporting}
-                  size="lg"
-                >
-                  Import {validRows.length.toLocaleString()} Records
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}

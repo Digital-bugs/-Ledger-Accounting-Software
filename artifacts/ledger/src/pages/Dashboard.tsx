@@ -67,9 +67,7 @@ export function Dashboard() {
     ...(dateTo ? { dateTo } : {}),
   };
 
-  const { data: summary, isLoading, isError } = useGetDashboardSummary(
-    Object.keys(params).length ? params : undefined
-  );
+  const { data: summary, isLoading, isError } = useGetDashboardSummary(params);
 
   const summaryCards = [
     { title: "Total Investments", amount: summary?.totalInvestments ?? 0, icon: Landmark },

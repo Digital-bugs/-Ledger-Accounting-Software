@@ -376,7 +376,7 @@ function PaginationBar({ filters, setFilters, total }: PaginationBarProps) {
 
 function SummaryCards({ dateFrom, dateTo }: { dateFrom?: string; dateTo?: string }) {
   const params = { ...(dateFrom ? { dateFrom } : {}), ...(dateTo ? { dateTo } : {}) };
-  const { data, isLoading } = useGetDashboardSummary(Object.keys(params).length ? params : undefined);
+  const { data, isLoading } = useGetDashboardSummary(params);
   const cards = [
     { label: "Total Investments", value: data?.totalInvestments ?? 0, icon: Landmark, color: "text-blue-600" },
     { label: "Total Direct Expenses", value: data?.totalDirectExpenses ?? 0, icon: ReceiptText, color: "text-red-600" },
