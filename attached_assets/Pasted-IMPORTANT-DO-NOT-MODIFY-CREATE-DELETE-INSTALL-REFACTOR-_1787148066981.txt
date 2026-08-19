@@ -1,0 +1,84 @@
+IMPORTANT: DO NOT MODIFY, CREATE, DELETE, INSTALL, REFACTOR, OR CHANGE ANYTHING IN THE PROJECT.
+
+I only want you to inspect and explain the EXISTING project. Do not run commands that change files or dependencies.
+
+Answer these questions based ONLY on the current codebase:
+
+1. Database
+What database technology is this application currently using?
+Is it SQLite, PostgreSQL, or something else?
+
+2. Database file
+What is the exact database filename?
+What is its exact current path/location in the project?
+
+3. Offline data storage
+When this application is packaged as an offline desktop application for a client, where will the client's actual data physically be stored on the client's computer?
+
+4. Database schema
+List every database table and all columns in each table.
+Also explain primary keys and foreign keys if present.
+
+5. Database connection
+Which exact file(s) connect the application to the database?
+Explain briefly how the connection works.
+
+6. Current data flow
+Explain how data entered through the UI travels from:
+UI → API/backend → database.
+Also explain how data is read back from the database.
+
+7. Backup
+What is the safest way to create a COMPLETE backup of the client's database?
+Will copying the database file alone be sufficient?
+Are there any WAL/SHM or other SQLite files that must also be considered?
+
+8. Restore
+If the client's computer crashes, the application is reinstalled, or the client gets a new computer:
+What exact steps will be required to restore the existing database and ALL client data?
+
+9. Updates
+If I release a new version of the software 1–2 years later:
+How can I update the application without deleting, replacing, or losing the client's existing database/data?
+
+10. Database migrations
+Does the current project use database migrations?
+If YES:
+- Where are the migration files?
+- What migration system is being used?
+- How are migrations applied?
+- What happens to existing client data when the schema changes?
+
+If NO:
+Clearly explain what would happen if a future software version changes the database schema.
+
+11. Packaging
+When this project is eventually packaged as an offline Windows .exe:
+- What will be packaged inside the .exe?
+- Where should the SQLite database live?
+- Should the database be inside the installation folder or in the user's AppData/user-data directory?
+- Which approach is safest for preserving client data during software updates/uninstallation?
+
+12. Multiple installations
+If the client installs a new version of the software, can the new version safely use the same existing database?
+Explain exactly how.
+
+13. Data safety
+Identify any current risks that could cause client data loss, corruption, or accidental database replacement.
+
+14. Backup/restore compatibility
+Can a database created by the current version be opened by a future version of the application?
+If not, explain why.
+
+15. Final architecture recommendation
+Based ONLY on the existing project, explain what the safest database + backup + restore + update architecture should be for the final offline Windows .exe.
+
+IMPORTANT:
+- Do NOT modify anything.
+- Do NOT fix anything.
+- Do NOT install anything.
+- Do NOT create files.
+- Do NOT change package.json, .replit, Vite config, database code, migrations, or dependencies.
+- Do NOT make assumptions.
+- If something cannot be determined from the codebase, explicitly say "Cannot be determined from the current codebase."
+- Give exact file paths whenever possible.
