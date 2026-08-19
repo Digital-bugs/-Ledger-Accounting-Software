@@ -13,18 +13,43 @@ const router: IRouter = Router();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getSummary() {
+function getSummary(dateFrom?: string, dateTo?: string) {
+  const receivedConditions: string[] = [];
+  const receivedParams: string[] = [];
+  const expenseConditions: string[] = [];
+  const expenseParams: string[] = [];
+  if (dateFrom) {
+    receivedConditions.push("entry_date >= ?");
+    receivedParams.push(dateFrom);
+    expenseConditions.push("entry_date >= ?");
+    expenseParams.push(dateFrom);
+  }
+  if (dateTo) {
+    receivedConditions.push("entry_date <= ?");
+    receivedParams.push(dateTo);
+    expenseConditions.push("entry_date <= ?");
+    expenseParams.push(dateTo);
+  }
+  const receivedWhere = receivedConditions.length
+    ? `WHERE ${receivedConditions.join(" AND ")}`
+    : "";
+  const expenseWhere = expenseConditions.length
+    ? `WHERE ${expenseConditions.join(" AND ")}`
+    : "";
+
   const { totalPettyCashReceived } = db
     .prepare(
-      `SELECT COALESCE(SUM(amount), 0) as totalPettyCashReceived FROM petty_cash_given`
+      `SELECT COALESCE(SUM(amount), 0) as totalPettyCashReceived
+       FROM petty_cash_given ${receivedWhere}`,
     )
-    .get() as { totalPettyCashReceived: number };
+    .get(...receivedParams) as { totalPettyCashReceived: number };
 
   const { totalExpenses } = db
     .prepare(
-      `SELECT COALESCE(SUM(amount), 0) as totalExpenses FROM petty_cash_spent`
+      `SELECT COALESCE(SUM(amount), 0) as totalExpenses
+       FROM petty_cash_spent ${expenseWhere}`,
     )
-    .get() as { totalExpenses: number };
+    .get(...expenseParams) as { totalExpenses: number };
 
   const accountantCashBalance = totalPettyCashReceived - totalExpenses;
   return { totalExpenses, totalPettyCashReceived, accountantCashBalance };
@@ -48,8 +73,9 @@ function getRecordById(id: number | bigint) {
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /accountant-expenses/summary  — must come BEFORE /:id
-router.get("/accountant-expenses/summary", (_req, res): void => {
-  res.json(GetAccountantExpenseSummaryResponse.parse(getSummary()));
+router.get("/accountant-expenses/summary", (req, res): void => {
+  const { dateFrom, dateTo } = req.query as Record<string, string>;
+  res.json(GetAccountantExpenseSummaryResponse.parse(getSummary(dateFrom, dateTo)));
 });
 
 // GET /accountant-expenses
@@ -114,7 +140,7 @@ router.get("/accountant-expenses", (req, res): void => {
     ListAccountantExpensesResponse.parse({
       data: rows,
       total: count,
-      summary: getSummary(),
+       summary: getSummary(dateFrom, dateTo),
     })
   );
 });

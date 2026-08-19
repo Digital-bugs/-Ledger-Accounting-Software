@@ -13,10 +13,24 @@ const router: IRouter = Router();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getSummary() {
+function getSummary(dateFrom?: string, dateTo?: string) {
+  const conditions: string[] = [];
+  const params: string[] = [];
+  if (dateFrom) {
+    conditions.push("entry_date >= ?");
+    params.push(dateFrom);
+  }
+  if (dateTo) {
+    conditions.push("entry_date <= ?");
+    params.push(dateTo);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
   const { total } = db
-    .prepare(`SELECT COALESCE(SUM(amount), 0) as total FROM joint_incomes`)
-    .get() as { total: number };
+    .prepare(
+      `SELECT COALESCE(SUM(amount), 0) as total
+       FROM joint_incomes ${where}`,
+    )
+    .get(...params) as { total: number };
 
   return { combinedTotal: total };
 }
@@ -40,8 +54,9 @@ function getRecordById(id: number | bigint) {
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /joint-incomes/summary  — must come BEFORE /:id
-router.get("/joint-incomes/summary", (_req, res): void => {
-  res.json(GetJointIncomeSummaryResponse.parse(getSummary()));
+router.get("/joint-incomes/summary", (req, res): void => {
+  const { dateFrom, dateTo } = req.query as Record<string, string>;
+  res.json(GetJointIncomeSummaryResponse.parse(getSummary(dateFrom, dateTo)));
 });
 
 // GET /joint-incomes
@@ -107,7 +122,7 @@ router.get("/joint-incomes", (req, res): void => {
     ListJointIncomesResponse.parse({
       data: rows,
       total: count,
-      summary: getSummary(),
+       summary: getSummary(dateFrom, dateTo),
     })
   );
 });

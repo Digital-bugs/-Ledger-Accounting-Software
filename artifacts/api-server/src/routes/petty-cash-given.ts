@@ -13,24 +13,54 @@ const router: IRouter = Router();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getSummary() {
+function getSummary(dateFrom?: string, dateTo?: string) {
+  const dateConditions: string[] = [];
+  const dateParams: string[] = [];
+  if (dateFrom) {
+    dateConditions.push("g.entry_date >= ?");
+    dateParams.push(dateFrom);
+  }
+  if (dateTo) {
+    dateConditions.push("g.entry_date <= ?");
+    dateParams.push(dateTo);
+  }
+  const dateFilter = dateConditions.length
+    ? `AND ${dateConditions.join(" AND ")}`
+    : "";
+
   const rows = db
     .prepare(
       `SELECT p.name, COALESCE(SUM(g.amount), 0) as total
        FROM partners p
-       LEFT JOIN petty_cash_given g ON p.id = g.partner_id
+       LEFT JOIN petty_cash_given g ON p.id = g.partner_id ${dateFilter}
        GROUP BY p.id, p.name
        ORDER BY p.id`
     )
-    .all() as { name: string; total: number }[];
+    .all(...dateParams) as { name: string; total: number }[];
 
   const yasirTotal = rows.find((r) => r.name === "Yasir")?.total ?? 0;
   const khurramTotal = rows.find((r) => r.name === "Khurram")?.total ?? 0;
   const combinedTotal = yasirTotal + khurramTotal;
 
+  const spentConditions: string[] = [];
+  const spentParams: string[] = [];
+  if (dateFrom) {
+    spentConditions.push("entry_date >= ?");
+    spentParams.push(dateFrom);
+  }
+  if (dateTo) {
+    spentConditions.push("entry_date <= ?");
+    spentParams.push(dateTo);
+  }
+  const spentWhere = spentConditions.length
+    ? `WHERE ${spentConditions.join(" AND ")}`
+    : "";
   const { totalSpent } = db
-    .prepare(`SELECT COALESCE(SUM(amount), 0) as totalSpent FROM petty_cash_spent`)
-    .get() as { totalSpent: number };
+    .prepare(
+      `SELECT COALESCE(SUM(amount), 0) as totalSpent
+       FROM petty_cash_spent ${spentWhere}`,
+    )
+    .get(...spentParams) as { totalSpent: number };
 
   const accountantCashBalance = combinedTotal - totalSpent;
 
@@ -58,8 +88,9 @@ function getRecordById(id: number | bigint) {
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /petty-cash-given/summary
-router.get("/petty-cash-given/summary", (_req, res): void => {
-  res.json(GetPettyCashGivenSummaryResponse.parse(getSummary()));
+router.get("/petty-cash-given/summary", (req, res): void => {
+  const { dateFrom, dateTo } = req.query as Record<string, string>;
+  res.json(GetPettyCashGivenSummaryResponse.parse(getSummary(dateFrom, dateTo)));
 });
 
 // GET /petty-cash-given
@@ -132,7 +163,7 @@ router.get("/petty-cash-given", (req, res): void => {
     ListPettyCashGivenResponse.parse({
       data: rows,
       total: count,
-      summary: getSummary(),
+       summary: getSummary(dateFrom, dateTo),
     })
   );
 });

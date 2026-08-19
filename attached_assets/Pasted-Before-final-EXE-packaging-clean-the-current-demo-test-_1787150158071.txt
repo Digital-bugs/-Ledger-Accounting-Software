@@ -1,0 +1,124 @@
+Before final EXE packaging, clean the current demo/test data and fix the transaction-list behavior across the entire software.
+
+IMPORTANT:
+First create a safety backup of the current database, then remove ONLY the existing demo/test transaction data. Do NOT delete the database, schema, migration history, application structure, or partner configuration unless it is clearly demo data.
+
+After the database is clean, we will manually test the software from zero.
+
+CORE REQUIREMENT:
+Whenever a user adds a transaction, it MUST:
+1. Save successfully to SQLite.
+2. Immediately appear in the relevant module's list/table.
+3. Show the correct date.
+4. Show the correct partner/person.
+5. Show the correct description/receipt number where applicable.
+6. Show the correct amount.
+7. Remain visible after page refresh/restart when the selected date filter includes it.
+8. Update the relevant dashboard/module totals.
+9. Be included correctly in Final Summary & Settlement calculations.
+
+Currently the dashboard totals update after adding an investment, but the transaction list remains empty. FIX THIS. The list/table must always reflect the actual database records.
+
+Test and fix ALL transaction modules:
+
+- Partner Investments
+- Partner Direct Expenses
+- Petty Cash Given
+- Accountant Expenses
+- Joint Company Income
+
+For every module verify the complete flow:
+
+FORM → API → SQLITE → LIST/TABLE → DASHBOARD TOTAL → FINAL SUMMARY/SETTLEMENT
+
+Do not fix only the Investment page. Find and fix the common underlying issue if the same problem exists across multiple modules.
+
+LIST REQUIREMENTS:
+
+For Investments, the list must display at minimum:
+- Receipt #
+- Date
+- Description
+- Partner
+- Amount
+- Actions
+
+For Expenses/Petty Cash/Income modules, display the appropriate existing columns, including date, description, partner (where applicable), amount, and receipt number where applicable.
+
+DATE/FILTER REQUIREMENT:
+
+The selected period must control the list AND the totals consistently.
+
+Verify:
+- This Month
+- Last Month
+- This Year
+- Last Year
+- All Time
+- Custom Date Range
+
+If a selected period has no records, show an empty state.
+If records exist in that period, show those records.
+Do NOT show records from another period.
+
+CALCULATION REQUIREMENT:
+
+Do NOT change or simplify the existing accounting/business formulas unless an actual calculation bug is found.
+
+After adding transactions, verify:
+- Partner totals
+- Combined totals
+- Company income
+- Expenses
+- Petty cash
+- Partner shares
+- Amount paid by each partner
+- Amount that should have been paid
+- Underpaid/overpaid amounts
+- Final amount one partner owes another
+- Final Summary & Settlement
+
+The Final Summary & Settlement must be mathematically consistent with the underlying SQLite records.
+
+DATA SAFETY:
+
+- Do NOT delete the SQLite database.
+- Do NOT recreate/reset the database schema.
+- Do NOT disable migrations.
+- Do NOT modify existing client-data protection.
+- Do NOT create fake records for the final state.
+- Before cleaning demo data, create a safety backup.
+- Clearly identify which records were removed as demo/test data.
+- After cleaning, verify that the database contains no demo transaction records.
+
+TESTING:
+
+After the clean database is ready, perform a complete controlled test by adding test transactions to EVERY module.
+
+For each test transaction:
+1. Add it through the actual UI.
+2. Verify successful API response.
+3. Verify the row exists in SQLite.
+4. Verify it immediately appears in the UI list.
+5. Verify date/partner/description/amount are correct.
+6. Refresh the page and verify it remains visible.
+7. Change the date filter and verify correct filtering.
+8. Verify dashboard totals update correctly.
+9. Verify Final Summary & Settlement updates correctly.
+10. Remove only the temporary test records after verification.
+
+Also test multiple records for different partners and different dates so that filtering and settlement calculations are genuinely verified.
+
+IMPORTANT:
+Do not package the EXE yet.
+
+At the end, report:
+- Demo data removed and exactly what was removed.
+- Root cause of the list-display problem.
+- Files changed.
+- Each module's create/save/list/refresh test result.
+- Date/filter test results.
+- Dashboard calculation test results.
+- Final Summary & Settlement calculation test results.
+- Confirmation that SQLite data and migrations are intact.
+- Any remaining errors or warnings that must be fixed before EXE packaging.

@@ -13,16 +13,30 @@ const router: IRouter = Router();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getSummary() {
+function getSummary(dateFrom?: string, dateTo?: string) {
+  const dateConditions: string[] = [];
+  const dateParams: string[] = [];
+  if (dateFrom) {
+    dateConditions.push("i.entry_date >= ?");
+    dateParams.push(dateFrom);
+  }
+  if (dateTo) {
+    dateConditions.push("i.entry_date <= ?");
+    dateParams.push(dateTo);
+  }
+  const dateFilter = dateConditions.length
+    ? `AND ${dateConditions.join(" AND ")}`
+    : "";
+
   const rows = db
     .prepare(
       `SELECT p.name, COALESCE(SUM(i.amount), 0) as total
        FROM partners p
-       LEFT JOIN investments i ON p.id = i.partner_id
+       LEFT JOIN investments i ON p.id = i.partner_id ${dateFilter}
        GROUP BY p.id, p.name
        ORDER BY p.id`
     )
-    .all() as { name: string; total: number }[];
+    .all(...dateParams) as { name: string; total: number }[];
 
   const yasirTotal = rows.find((r) => r.name === "Yasir")?.total ?? 0;
   const khurramTotal = rows.find((r) => r.name === "Khurram")?.total ?? 0;
@@ -50,8 +64,9 @@ function getInvestmentById(id: number | bigint) {
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /investments/summary  — must come BEFORE /:id
-router.get("/investments/summary", (_req, res): void => {
-  res.json(GetInvestmentSummaryResponse.parse(getSummary()));
+router.get("/investments/summary", (req, res): void => {
+  const { dateFrom, dateTo } = req.query as Record<string, string>;
+  res.json(GetInvestmentSummaryResponse.parse(getSummary(dateFrom, dateTo)));
 });
 
 // GET /investments
@@ -126,7 +141,7 @@ router.get("/investments", (req, res): void => {
     ListInvestmentsResponse.parse({
       data: rows,
       total: count,
-      summary: getSummary(),
+       summary: getSummary(dateFrom, dateTo),
     })
   );
 });

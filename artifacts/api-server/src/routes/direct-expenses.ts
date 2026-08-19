@@ -13,16 +13,30 @@ const router: IRouter = Router();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getSummary() {
+function getSummary(dateFrom?: string, dateTo?: string) {
+  const dateConditions: string[] = [];
+  const dateParams: string[] = [];
+  if (dateFrom) {
+    dateConditions.push("e.entry_date >= ?");
+    dateParams.push(dateFrom);
+  }
+  if (dateTo) {
+    dateConditions.push("e.entry_date <= ?");
+    dateParams.push(dateTo);
+  }
+  const dateFilter = dateConditions.length
+    ? `AND ${dateConditions.join(" AND ")}`
+    : "";
+
   const rows = db
     .prepare(
       `SELECT p.name, COALESCE(SUM(e.amount), 0) as total
        FROM partners p
-       LEFT JOIN direct_expenses e ON p.id = e.partner_id
+       LEFT JOIN direct_expenses e ON p.id = e.partner_id ${dateFilter}
        GROUP BY p.id, p.name
        ORDER BY p.id`
     )
-    .all() as { name: string; total: number }[];
+    .all(...dateParams) as { name: string; total: number }[];
 
   const yasirTotal = rows.find((r) => r.name === "Yasir")?.total ?? 0;
   const khurramTotal = rows.find((r) => r.name === "Khurram")?.total ?? 0;
@@ -50,8 +64,9 @@ function getExpenseById(id: number | bigint) {
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /direct-expenses/summary  — must come BEFORE /:id
-router.get("/direct-expenses/summary", (_req, res): void => {
-  res.json(GetDirectExpenseSummaryResponse.parse(getSummary()));
+router.get("/direct-expenses/summary", (req, res): void => {
+  const { dateFrom, dateTo } = req.query as Record<string, string>;
+  res.json(GetDirectExpenseSummaryResponse.parse(getSummary(dateFrom, dateTo)));
 });
 
 // GET /direct-expenses
@@ -124,7 +139,7 @@ router.get("/direct-expenses", (req, res): void => {
     ListDirectExpensesResponse.parse({
       data: rows,
       total: count,
-      summary: getSummary(),
+       summary: getSummary(dateFrom, dateTo),
     })
   );
 });
