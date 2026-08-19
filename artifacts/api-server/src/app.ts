@@ -9,6 +9,13 @@ import { initBackupScheduler } from "./routes/backup";
 
 const app: Express = express();
 
+// API responses must always include their JSON body. Express's default ETag
+// handling can turn repeated GETs into 304 responses, but the shared client
+// treats 304 as an empty response because it cannot restore the cached body
+// outside the browser cache. Disabling ETags keeps list data available after
+// navigation, refreshes, and query invalidation.
+app.disable("etag");
+
 app.use(
   pinoHttp({
     logger,
