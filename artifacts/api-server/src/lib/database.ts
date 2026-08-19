@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import path from "node:path";
 import fs from "node:fs";
 import { logger } from "./logger";
+import { runMigrations } from "./migrations";
 
 // Data directory — defaults to <cwd>/data, overridable via env for Electron packaging
 export const DATA_DIR = process.env.SQLITE_DATA_DIR
@@ -28,63 +29,10 @@ db.pragma("synchronous = NORMAL");
 
 logger.info({ dbPath: DB_PATH }, "SQLite database initialized");
 
-// ─── Schema creation (idempotent) ─────────────────────────────────────────
-db.exec(`
-  CREATE TABLE IF NOT EXISTS partners (
-    id                INTEGER PRIMARY KEY AUTOINCREMENT,
-    name              TEXT    NOT NULL,
-    share_percentage  REAL    NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS investments (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    receipt_number TEXT,
-    entry_date     TEXT NOT NULL,
-    description    TEXT NOT NULL,
-    partner_id     INTEGER NOT NULL REFERENCES partners(id),
-    amount         REAL    NOT NULL,
-    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS direct_expenses (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    receipt_number TEXT,
-    entry_date     TEXT NOT NULL,
-    description    TEXT NOT NULL,
-    partner_id     INTEGER NOT NULL REFERENCES partners(id),
-    amount         REAL    NOT NULL,
-    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS petty_cash_given (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    receipt_number TEXT,
-    entry_date     TEXT NOT NULL,
-    description    TEXT NOT NULL,
-    partner_id     INTEGER NOT NULL REFERENCES partners(id),
-    amount         REAL    NOT NULL,
-    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS petty_cash_spent (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    receipt_number TEXT,
-    entry_date     TEXT NOT NULL,
-    description    TEXT NOT NULL,
-    amount         REAL    NOT NULL,
-    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS joint_incomes (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    receipt_number TEXT,
-    entry_date     TEXT NOT NULL,
-    description    TEXT NOT NULL,
-    income_type    TEXT,
-    amount         REAL    NOT NULL,
-    created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
-`);
+// ─── Versioned schema migrations ──────────────────────────────────────────
+// Existing databases are backed up and adopted at migration 001 without
+// recreating or changing their existing application tables.
+await runMigrations(db, BACKUPS_DIR);
 
 // ─── Seed fixed partners (once only) ──────────────────────────────────────
 const partnerCount = (
