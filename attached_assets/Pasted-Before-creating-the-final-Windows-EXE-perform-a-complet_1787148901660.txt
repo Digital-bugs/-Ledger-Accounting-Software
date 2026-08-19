@@ -1,0 +1,79 @@
+Before creating the final Windows EXE, perform a complete production-readiness audit of the existing application.
+
+DO NOT change anything yet. Only inspect, test, and report.
+
+Focus especially on:
+
+1. SQLite database
+- Confirm the active database is SQLite.
+- Verify database creation and connection work offline.
+- Verify existing data is preserved.
+- Verify database migrations work safely.
+- Verify no update can overwrite or reset ledger.db.
+- Verify SQLite WAL handling.
+
+2. Backend/API
+- Verify the local API/backend works correctly without internet.
+- Verify every frontend module communicates correctly with the backend.
+- Check for missing environment variables, localhost/port dependencies, or Replit-only dependencies.
+
+3. Core accounting calculations
+Thoroughly test and verify:
+- Partner shares: Yasir and Khurram.
+- Partner investment calculations.
+- Partner direct expenses included according to the current business logic.
+- Joint company income.
+- Petty cash.
+- Accountant expenses.
+- Final Summary & Settlement.
+- Who paid how much.
+- Who should have paid according to the partner percentages.
+- Who overpaid.
+- Who underpaid.
+- Final amount one partner owes the other.
+
+Do not assume calculations are correct. Trace the actual backend calculation code and test the formulas with sample data.
+
+4. All modules
+Test CRUD, search, filters, date ranges, totals, pagination, and data persistence for every module.
+
+5. Global date filtering
+Verify This Month, Last Month, This Year, Last Year, Custom Range, and All Time return only the correct records and calculations.
+
+6. Backup & Restore
+Verify backup creation, backup integrity, restore, and recovery of all database records.
+
+7. Excel Import/Export
+Verify import and export do not corrupt or duplicate data.
+
+8. Offline operation
+Verify the complete application works without internet access.
+
+9. EXE readiness
+Inspect the project for:
+- Frontend
+- Backend/API
+- SQLite
+- migrations
+- assets
+- dependencies
+- environment variables
+- startup scripts
+- file paths
+- Windows compatibility
+
+Identify anything that would fail after packaging as a Windows offline EXE.
+
+10. Final report
+Give me:
+- PASS items
+- FAIL items
+- WARNINGS
+- Critical issues that MUST be fixed before EXE packaging
+- Recommended test cases for the final EXE
+
+IMPORTANT:
+Do not modify, refactor, or fix anything during this audit.
+Do not create the EXE yet.
+Do not change the database.
+Only inspect and test the existing application and report the findings.
