@@ -1,0 +1,74 @@
+URGENT: Fix the global transaction CRUD/data-loading issue.
+
+The problem is NOT limited to Partner Investments. Across the whole application, transaction records are currently not being created and existing transaction lists are not appearing in the UI.
+
+Affected modules include:
+- Partner Investments
+- Partner Direct Expenses
+- Petty Cash Given
+- Accountant Expenses / Petty Cash Spent
+- Joint Company Income
+- Any other transaction module using the same API/database layer
+
+Important: Do NOT change accounting calculations, settlement logic, migration logic, database schema, or existing business rules.
+
+First diagnose the common root cause before changing anything.
+
+Check the complete flow for one module first:
+Frontend form → API request → backend route → SQLite query → API response → frontend state/cache refresh → table rendering.
+
+Then determine why BOTH of these are failing:
+1. New records are not being saved/displayed.
+2. Existing records are not being fetched/displayed.
+
+Check specifically:
+- API server URL/base URL
+- frontend API client configuration
+- API route registration
+- GET/list endpoints
+- POST/create endpoints
+- request/response format
+- SQLite database connection
+- database path (`ledger.db`)
+- SQL queries
+- frontend query/state invalidation or refresh
+- date/filter parameters
+- error handling
+- browser console errors
+- API/network errors
+- backend/server logs
+
+Do not assume the database is empty. Verify the actual SQLite database and existing records.
+
+Use the existing `ledger.db`. Do NOT delete, recreate, reset, seed, or replace it.
+
+After identifying the root cause, fix the shared/common issue so all affected modules work correctly.
+
+Then test EVERY affected module:
+
+1. Create one test record.
+2. Confirm the API returns success.
+3. Confirm the record actually exists in SQLite.
+4. Confirm the record immediately appears in the UI list.
+5. Refresh the page and confirm it still appears.
+6. Confirm existing records also appear.
+7. Confirm dashboard/module totals still match the database.
+8. Test search/filter/date filtering and make sure it does not hide valid records incorrectly.
+
+Remove any temporary test records after verification if appropriate, without touching the pre-existing client data.
+
+IMPORTANT:
+- Do not modify accounting formulas.
+- Do not modify settlement calculations.
+- Do not modify the SQLite migration system.
+- Do not change the database schema unless the root cause proves a schema change is absolutely required; if so, stop and explain before making it.
+- Do not create fake/demo data.
+- Do not package the EXE yet.
+
+At the end, give me:
+1. Exact root cause.
+2. Exact files changed.
+3. What was fixed.
+4. Test result for every module.
+5. Confirmation that existing database records were preserved.
+6. Any remaining errors that could prevent the final EXE from working.
