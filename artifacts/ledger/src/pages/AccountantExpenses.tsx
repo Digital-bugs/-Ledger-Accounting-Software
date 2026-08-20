@@ -93,6 +93,11 @@ const PAGE_SIZES = [25, 50, 100];
 const fmt = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const todayIso = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+};
+
 function filtersToParams(f: Filters) {
   return {
     ...(f.search ? { search: f.search } : {}),
@@ -126,7 +131,7 @@ function FormDialog({ open, onClose, editing, onSaved, availableBalance }: FormD
 
   const [form, setForm] = useState<AccountantExpenseBody>({
     receiptNumber: "",
-    entryDate: "",
+    entryDate: todayIso(),
     description: "",
     amount: 0,
   });
@@ -147,7 +152,7 @@ function FormDialog({ open, onClose, editing, onSaved, availableBalance }: FormD
           amount: editing.amount,
         });
       } else {
-        setForm({ receiptNumber: "", entryDate: "", description: "", amount: 0 });
+        setForm({ receiptNumber: "", entryDate: todayIso(), description: "", amount: 0 });
       }
       setErrors({});
     }
