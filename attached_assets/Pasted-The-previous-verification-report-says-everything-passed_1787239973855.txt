@@ -1,0 +1,100 @@
+The previous verification report says everything passed, but I am manually testing the actual Ledger Preview and the problem STILL EXISTS.
+
+When I click "Add Expense/Investment" and submit a real record from the UI:
+- the dashboard/module total does not update correctly
+- the new record does NOT appear in the list/table
+- the list remains empty
+
+So the previous API-only verification is NOT sufficient.
+
+STOP automated-only testing and debug the ACTUAL browser UI flow.
+
+Use the real Ledger Preview and reproduce this manually:
+
+1. Open Partner Investments.
+2. Click Add Investment.
+3. Enter a real test record with today's date, a partner, description and amount.
+4. Submit it.
+5. Observe the actual network/API request.
+6. Verify the API response.
+7. Immediately verify the list on the screen.
+8. Verify the total cards on the same screen.
+9. Refresh the page.
+10. Verify the record is still visible.
+11. Repeat the same real UI test for:
+   - Partner Direct Expenses
+   - Petty Cash Given
+   - Accountant Expenses
+   - Joint Company Income
+
+IMPORTANT:
+Do not assume the UI works just because an API script returns 201/200.
+
+Trace the complete real browser flow:
+
+UI form
+→ frontend mutation
+→ API request
+→ SQLite insert
+→ API response
+→ React Query/cache invalidation
+→ GET/list request
+→ frontend state
+→ rendered table
+→ dashboard total
+
+Find exactly where the real browser flow breaks.
+
+Also inspect the browser Network/Console output while performing the test.
+
+Pay special attention to:
+- wrong API URL
+- wrong API response shape
+- React Query query key mismatch
+- cache invalidation/refetch not happening
+- dateFrom/dateTo being sent incorrectly
+- "This Month" filter excluding today's record unexpectedly
+- frontend expecting an array while API returns an object
+- stale/null query data
+- frontend using a different API server/workflow than the one tested by the script
+- Preview pointing to the wrong backend
+- any error occurring after a successful POST
+- list query failing even though create succeeds
+
+Do NOT change accounting calculations yet.
+Do NOT change the database schema.
+Do NOT delete the database.
+Do NOT create another migration.
+Do NOT package the EXE.
+
+First reproduce the problem in the actual browser and identify the exact root cause.
+
+After fixing it, verify manually in the real Preview that:
+
+Partner Investments:
+Add → Save → row immediately appears → total updates → refresh → row remains.
+
+Then do the same for all other transaction modules.
+
+Finally verify:
+- This Month
+- Last Month
+- This Year
+- Last Year
+- All Time
+- Custom Date Range
+
+The visible list and visible totals must always use the same date filter.
+
+Only after the actual browser UI works should you report the task as fixed.
+
+At the end give me:
+1. Exact root cause.
+2. Exact files changed.
+3. What was wrong between frontend and backend.
+4. Evidence from the real browser test.
+5. Confirmation that each module was tested through the actual UI.
+6. Confirmation that the record appears in the list AND totals update.
+7. Any remaining errors.
+
+Do not tell me "tests passed" based only on API scripts. I need the actual Preview UI to work.
