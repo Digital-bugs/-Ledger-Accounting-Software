@@ -356,7 +356,7 @@ Do not put secrets in source control or README files. The repository does not co
 
 The following is the repository-confirmed setup sequence. The API process requires `PORT`; it fails fast when the variable is missing or invalid.
 
-1. Install Node.js 24 and pnpm.
+1. Install Node.js 24 and pnpm. A clean machine must also have a C/C++ compiler/build toolchain and Python available when the operating system requires them to compile native dependencies such as `better-sqlite3`.
 2. Clone or copy the repository and open a shell at its root.
 3. Install workspace dependencies:
 

@@ -1,0 +1,264 @@
+I want to create a FINAL NEUTRAL DEVELOPER HANDOVER VERSION of this project for external delivery as a ZIP file.
+
+IMPORTANT CONTEXT:
+I will provide this project to an independent developer as a normal ZIP file. I do NOT need the delivered ZIP to remain runnable inside Replit. My goal is to remove Replit-specific platform, agent, artifact, plugin, branding, and metadata dependencies from the delivered project while preserving 100% of the actual application functionality.
+
+Before making changes, preserve the current working project as a safe checkpoint/back-up inside the environment if possible. Do not alter or delete the actual application source, database logic, accounting logic, or business behavior.
+
+========================================
+PRIMARY GOAL
+========================================
+
+Convert the project into a neutral, professional, developer-friendly handover repository.
+
+The final ZIP should not contain unnecessary Replit-specific files, Replit-only runtime configuration, Replit-only Vite plugins, Replit Agent metadata, or visible Replit attribution.
+
+Replace only Replit-specific infrastructure where necessary with normal, neutral development configuration.
+
+The final project must still work as a standard pnpm/Node.js project outside Replit.
+
+========================================
+STRICT SAFETY RULE
+========================================
+
+DO NOT change any accounting or application behavior.
+
+Do not change:
+- SQLite schema
+- database contents or migrations
+- partner percentages
+- accounting calculations
+- settlement calculations
+- dashboard totals
+- reports
+- imports
+- exports
+- backup/restore behavior
+- API endpoint behavior
+- frontend routes
+- business logic
+- React Query behavior
+- date filtering
+- transaction CRUD behavior
+
+Do not redesign the UI.
+
+Do not change the existing application functionality unless a change is strictly required to remove a Replit-only dependency.
+
+========================================
+REMOVE / CLEAN UP REPLIT-SPECIFIC ITEMS
+========================================
+
+Perform a coordinated cleanup of Replit-specific infrastructure where it is no longer needed outside Replit.
+
+Audit and clean, where technically safe:
+
+1. Replit-only Vite plugins:
+   - @replit/vite-plugin-runtime-error-modal
+   - @replit/vite-plugin-cartographer
+   - @replit/vite-plugin-dev-banner
+
+Remove their imports and plugin registrations from Vite configuration files.
+
+Then remove their matching dependencies from:
+- relevant package.json files
+- pnpm-workspace.yaml catalog entries if unused
+- pnpm-lock.yaml through normal pnpm commands
+
+Do NOT manually corrupt or hand-edit the lockfile unnecessarily.
+
+2. @replit/connectors-sdk
+
+Audit whether it has any real runtime/source usage.
+
+If no application source or actual runtime feature depends on it, remove it cleanly from:
+- package.json
+- pnpm-lock.yaml
+
+If there is a real dependency, do not remove it blindly. Explain exactly why it must remain.
+
+3. .replit-artifact directories/files
+
+These are Replit artifact metadata.
+
+For the external neutral handover version, remove the Replit artifact manifests if they are not needed for normal local development/build.
+
+4. .replit
+
+For the external ZIP, remove it if the project can run using the documented README commands without it.
+
+Do not replace it with another platform-specific configuration.
+
+5. replit.nix
+
+Remove it from the neutral external handover version.
+
+Instead, ensure README.md clearly documents the normal native build prerequisites for better-sqlite3:
+- Node.js 24
+- pnpm
+- C/C++ build tools/compiler
+- Python if required by the operating system/native dependency build process
+
+Do not add Docker or another deployment system unless absolutely necessary.
+
+6. pnpm-workspace.yaml
+
+Remove only Replit-specific comments, catalog entries, exclusions, or configuration that become unused after dependency cleanup.
+
+Do NOT damage normal workspace configuration or dependency policies.
+
+7. Search the entire repository for remaining unnecessary Replit-specific references, including:
+- Replit
+- replit
+- Replit Agent
+- Built with Replit
+- Build with Replit Agent
+- @replit/
+
+Classify every remaining reference into:
+A. must remain because it is genuinely required for functionality
+B. stale/unnecessary and safe to remove
+C. historical/reference text that should be removed for the neutral handover
+
+Remove all items in categories B and C.
+
+If any Replit reference genuinely must remain, explain exactly why.
+
+========================================
+NEUTRAL CONFIGURATION REQUIREMENT
+========================================
+
+Do not leave the project dependent on Replit environment behavior.
+
+Ensure normal local commands are documented and usable:
+
+pnpm install
+
+pnpm --filter @workspace/api-server run dev
+
+pnpm --filter @workspace/ledger run dev
+
+pnpm run typecheck
+
+pnpm run build
+
+If environment variables such as PORT or BASE_PATH are required, make the requirements explicit and neutral.
+
+The project must not require a Replit workflow merely to start.
+
+========================================
+MOCKUP-SANDBOX BUILD ISSUE
+========================================
+
+Previous verification showed that:
+
+pnpm run build
+
+fails in artifacts/mockup-sandbox because its Vite configuration requires PORT during build configuration loading.
+
+Fix this configuration issue in a neutral and safe way so the normal root build command works without relying on Replit-specific environment injection.
+
+The preferred outcome is:
+
+pnpm run typecheck
+PASS
+
+pnpm run build
+PASS
+
+Do not fix this by changing accounting application behavior.
+
+Only fix the configuration/build requirement.
+
+========================================
+README.md
+========================================
+
+Keep the existing comprehensive developer handover README.
+
+Update it only where necessary to remove stale Replit-specific instructions.
+
+The README should accurately document:
+- normal external/local setup
+- Node.js 24 requirement
+- pnpm
+- build prerequisites
+- API and frontend run commands
+- environment variables
+- typecheck/build commands
+- database location and data preservation
+- backup/migration safety
+
+Do not rewrite the accounting documentation unnecessarily.
+
+========================================
+TREXEX / TRENEX BRANDING
+========================================
+
+The required developer/ownership wording is:
+
+Made By Trenex Agency
+
+Use this exact wording only where a visible developer attribution or neutral project metadata attribution is appropriate.
+
+Do not insert branding into the application UI if there was no branding area before.
+
+========================================
+FINAL VERIFICATION
+========================================
+
+After all cleanup:
+
+1. Run:
+   pnpm install
+
+2. Run:
+   pnpm run typecheck
+
+3. Run:
+   pnpm run build
+
+Both typecheck and build must pass.
+
+4. Search the full repository for:
+   Replit
+   replit
+   Replit Agent
+   Build with Replit
+   Built with Replit
+   @replit/
+
+5. Report every remaining match and explain why it remains.
+
+6. Confirm that no Replit-specific files remain unnecessarily in the external handover project.
+
+7. Confirm that:
+   - accounting logic was not changed
+   - database/schema was not changed
+   - migrations were not changed
+   - financial calculations were not changed
+   - API behavior was not changed
+   - backup/restore was not changed
+   - import/export was not changed
+   - application functionality remains intact
+
+8. Give me a concise final file-change report:
+   - files removed
+   - files modified
+   - dependencies removed
+   - configuration changes
+   - exact verification results
+
+DO NOT make unnecessary refactors.
+
+DO NOT add new frameworks.
+
+DO NOT add Docker, Electron, authentication, or deployment systems.
+
+DO NOT touch the software's accounting/business logic.
+
+The priority is:
+1. Safe functionality
+2. Neutral professional developer handover
+3. Removal of unnecessary Replit-specific infrastructure
+4. Passing typecheck and build
