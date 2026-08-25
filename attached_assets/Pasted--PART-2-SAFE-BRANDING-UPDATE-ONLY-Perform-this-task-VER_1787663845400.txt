@@ -1,0 +1,188 @@
+# PART 2 — SAFE BRANDING UPDATE ONLY
+
+Perform this task VERY CAREFULLY.
+
+The software is currently working. This task is ONLY about removing visible Replit branding and adding Trenex Agency branding.
+
+IMPORTANT:
+DO NOT break, redesign, refactor, restructure, or change any working software functionality.
+
+## STRICT SCOPE
+
+You are ONLY allowed to change user-visible branding related to Replit.
+
+Do NOT change:
+
+- Accounting logic
+- Financial calculations
+- Final settlement calculations
+- Partner percentages
+- Database schema
+- Database data
+- SQLite logic
+- API logic
+- API endpoints
+- OpenAPI specification
+- Generated API client
+- Import/export logic
+- Backup/restore logic
+- Migrations
+- Reports
+- Date filtering
+- Routing behavior
+- Existing features
+- Business logic
+- Package dependencies
+- pnpm configuration
+- Node.js configuration
+- Existing Replit runtime/workflow configuration
+
+Do not refactor unrelated files.
+
+Do not “improve” anything outside the branding task.
+
+Do not modify the README unless it contains actual user-visible branding that must be changed.
+
+---
+
+# BRANDING TASK
+
+Search the ENTIRE project carefully for USER-VISIBLE Replit branding, including:
+
+- Replit
+- replit
+- Replit Agent
+- Built with Replit
+- Build with Replit
+- Made with Replit
+- Powered by Replit
+- Built by Replit
+- Replit logo
+- Replit branding badge
+- Replit branding icon
+
+Check especially:
+
+- Application footer
+- Application header
+- Login screen, if any
+- About page, if any
+- Settings page, if any
+- Visible text in React components
+- HTML title and metadata
+- Browser title
+- Favicon references ONLY if they are Replit-branded
+
+## REPLACEMENT RULES
+
+If there is a visible attribution such as:
+
+"Built with Replit"
+"Build with Replit"
+"Made with Replit"
+"Powered by Replit"
+"Built by Replit"
+or similar visible Replit attribution,
+
+replace it with exactly:
+
+"Made By Trenex Agency"
+
+If there is a visible Replit agency/platform name without attribution, replace the visible branding appropriately with:
+
+"Trenex Agency"
+
+Do not replace the actual software/product name "Crown King" unless the text being changed is specifically Replit branding.
+
+---
+
+# CRITICAL: DO NOT BREAK REPLIT TECHNICAL CONFIGURATION
+
+Do NOT remove or break technical Replit files/configuration that are required for the application to run.
+
+For example, do NOT blindly remove or change:
+
+- .replit
+- Replit workflows
+- Replit deployment configuration
+- Replit environment configuration
+- Runtime configuration
+- Any internal technical Replit integration required to run this project
+
+The goal is:
+
+REMOVE USER-VISIBLE REPLIT BRANDING
+
+while keeping all technical infrastructure intact.
+
+---
+
+# SAFE WORKFLOW
+
+Before editing:
+
+1. Inspect and identify every proposed file that contains visible Replit branding.
+2. Separate user-visible branding references from technical infrastructure references.
+3. Change ONLY files that actually require a visible branding update.
+4. Do not modify unrelated files.
+
+During editing:
+
+1. Make the smallest possible changes.
+2. Change text, branding names, logos, icons, titles, or visible attribution only where necessary.
+3. Do not modify component logic.
+4. Do not change imports unless required to remove a Replit branding asset.
+5. Do not change any application behavior.
+
+After editing:
+
+1. Search the entire project again for visible Replit branding.
+2. Confirm all user-visible Replit branding has been removed or replaced where applicable.
+3. Confirm technical Replit configuration still exists and remains untouched unless a change was absolutely required.
+4. Review the Git diff carefully and revert any unrelated changes.
+5. Ensure only branding-related files/lines were changed.
+
+---
+
+# MANDATORY VERIFICATION
+
+Run:
+
+pnpm run typecheck
+
+Then run:
+
+pnpm run build
+
+If both pass, confirm success.
+
+If anything fails:
+
+- Investigate the failure.
+- Fix ONLY issues directly caused by the branding changes.
+- Do NOT make unrelated fixes or refactors.
+
+Do not stop until branding changes are verified and the project still passes typecheck and build.
+
+---
+
+# FINAL RESPONSE
+
+Provide a concise final report with:
+
+1. Exact files changed
+2. Exact visible Replit branding removed or replaced
+3. Where "Trenex Agency" was added
+4. Where "Made By Trenex Agency" was added
+5. Confirmation that no accounting, API, database, calculation, backup, migration, import/export, report, or business logic was changed
+6. Typecheck result
+7. Build result
+8. Confirmation that technical Replit configuration required to run the software was preserved
+
+IMPORTANT FINAL RULE:
+
+This is a BRANDING-ONLY update.
+
+Do not change anything that is not necessary for removing visible Replit branding and applying Trenex Agency branding.
+
+The existing software must remain functionally identical after this task.
