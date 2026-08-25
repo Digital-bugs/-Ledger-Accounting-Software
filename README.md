@@ -72,21 +72,23 @@ The frontend is in `artifacts/ledger/`. `src/main.tsx` mounts the React applicat
 
 The generated hooks imported from `@workspace/api-client-react` call the API and are consumed by the page components. The app uses the Vite base URL through wouter's `base` configuration, so it can be served behind an artifact path.
 
-### Frontend routes and pages
+### Frontend pages, routes, and API usage
 
-| URL | Component | Purpose |
-|---|---|---|
-| `/` | `src/pages/Dashboard.tsx` | Period-filtered financial overview |
-| `/partner-investments` | `src/pages/PartnerInvestments.tsx` | Investment records by partner |
-| `/partner-expenses` | `src/pages/PartnerDirectExpenses.tsx` | Direct partner expense records |
-| `/petty-cash` | `src/pages/PettyCashGiven.tsx` | Petty cash given to a partner |
-| `/accountant-expenses` | `src/pages/AccountantExpenses.tsx` | Accountant spending from petty cash |
-| `/joint-income` | `src/pages/JointCompanyIncome.tsx` | Joint company income records |
-| `/settlement` | `src/pages/FinalSummary.tsx` | Final summary and settlement |
-| `/excel-import` | `src/pages/ExcelImport.tsx` | Bulk Excel/CSV import |
-| `/reports` | `src/pages/Reports.tsx` | Charts, analytics, and exports |
-| `/backup` | `src/pages/Backup.tsx` | Backup, restore, settings, and health checks |
-| `/settings` | Inline `PageWrapper` in `src/App.tsx` | Placeholder settings page |
+The pages use generated React Query hooks from `@workspace/api-client-react`; mutations invalidate/refetch related queries in the page components so lists and summary cards refresh after writes. The mapping below reflects the current page imports and route usage.
+
+| Frontend page | URL | Main component/file | API route(s) used |
+|---|---|---|---|
+| Dashboard | `/` | `src/pages/Dashboard.tsx` | `GET /dashboard/summary` |
+| Partner Investments | `/partner-investments` | `src/pages/PartnerInvestments.tsx` | `GET/POST /investments`, `PUT/DELETE /investments/:id`, `GET /partners` |
+| Partner Direct Expenses | `/partner-expenses` | `src/pages/PartnerDirectExpenses.tsx` | `GET/POST /direct-expenses`, `PUT/DELETE /direct-expenses/:id`, `GET /partners` |
+| Petty Cash Given | `/petty-cash` | `src/pages/PettyCashGiven.tsx` | `GET/POST /petty-cash-given`, `PUT/DELETE /petty-cash-given/:id`, `GET /partners` |
+| Accountant Expenses | `/accountant-expenses` | `src/pages/AccountantExpenses.tsx` | `GET/POST /accountant-expenses`, `PUT/DELETE /accountant-expenses/:id` |
+| Joint Company Income | `/joint-income` | `src/pages/JointCompanyIncome.tsx` | `GET/POST /joint-incomes`, `PUT/DELETE /joint-incomes/:id` |
+| Final Summary & Settlement | `/settlement` | `src/pages/FinalSummary.tsx` | `GET /final-summary` |
+| Excel Data Import | `/excel-import` | `src/pages/ExcelImport.tsx` | `GET /partners`, `POST /excel-import/check-duplicates`, `POST /excel-import` |
+| Reports | `/reports` | `src/pages/Reports.tsx` | `GET /dashboard/summary`, transaction list routes, `GET /final-summary`, `GET /reports/monthly-data`, `GET /reports/analytics` |
+| Backup & Restore | `/backup` | `src/pages/Backup.tsx` | `GET/POST /backup`, `GET /backup/health`, `GET/PUT /backup/settings`, `POST /backup/restore`, `POST /backup/upload-restore`, `DELETE /backup/:filename`, `GET /backup/download/:filename` |
+| Settings | `/settings` | Inline `PageWrapper` in `src/App.tsx` | None; current page is a placeholder |
 
 Unmatched URLs render `src/pages/not-found.tsx`.
 
@@ -159,15 +161,15 @@ The checked-in `data/ledger.db`, `data/ledger.db-shm`, and `data/ledger.db-wal` 
 
 The current schema is defined in `artifacts/api-server/src/lib/migrations/001_initial_schema.ts`.
 
-| Table | Important columns | Relationships |
+| Database table | Purpose | Important columns | Relationships |
 |---|---|---|
-| `partners` | `id`, `name`, `share_percentage` | Referenced by partner transaction tables |
-| `investments` | `id`, `receipt_number`, `entry_date`, `description`, `partner_id`, `amount`, `created_at` | `partner_id → partners.id` |
-| `direct_expenses` | Same record fields as investments | `partner_id → partners.id` |
-| `petty_cash_given` | Same record fields as investments | `partner_id → partners.id` |
-| `petty_cash_spent` | `id`, `receipt_number`, `entry_date`, `description`, `amount`, `created_at` | No partner foreign key; this is accountant spending |
-| `joint_incomes` | `id`, `receipt_number`, `entry_date`, `description`, `income_type`, `amount`, `created_at` | No foreign key |
-| `schema_migrations` | `version`, `name`, `applied_at` | Migration bookkeeping |
+| `partners` | Fixed partner master data and settlement percentages | `id`, `name`, `share_percentage` | Referenced by partner transaction tables |
+| `investments` | Money invested by a named partner | `id`, `receipt_number`, `entry_date`, `description`, `partner_id`, `amount`, `created_at` | `partner_id → partners.id` |
+| `direct_expenses` | Company expenses paid directly by a named partner | Same record fields as investments | `partner_id → partners.id` |
+| `petty_cash_given` | Petty cash advanced by a named partner | Same record fields as investments | `partner_id → partners.id` |
+| `petty_cash_spent` | Accountant expenses paid from petty cash | `id`, `receipt_number`, `entry_date`, `description`, `amount`, `created_at` | No partner foreign key |
+| `joint_incomes` | Company income not assigned to a single partner | `id`, `receipt_number`, `entry_date`, `description`, `income_type`, `amount`, `created_at` | No foreign key |
+| `schema_migrations` | Tracks which versioned schema changes have run | `version`, `name`, `applied_at` | Migration bookkeeping |
 
 Amounts are stored as SQLite `REAL`, dates as text, and generated timestamps use SQLite `datetime('now')`. Foreign keys are enabled at connection initialization.
 
@@ -263,19 +265,19 @@ UI: `artifacts/ledger/src/pages/PartnerInvestments.tsx`. API: `artifacts/api-ser
 
 ### Partner direct expenses
 
-UI: `src/pages/PartnerDirectExpenses.tsx`. API: `src/routes/direct-expenses.ts`. These are partner-specific direct company expenses and contribute to the partner's amount paid.
+UI: `artifacts/ledger/src/pages/PartnerDirectExpenses.tsx`. API: `artifacts/api-server/src/routes/direct-expenses.ts`. These are partner-specific direct company expenses and contribute to the partner's amount paid.
 
 ### Petty cash given
 
-UI: `src/pages/PettyCashGiven.tsx`. API: `src/routes/petty-cash-given.ts`. A partner provides petty cash and is credited for that amount in settlement. The aggregate also funds the accountant cash balance.
+UI: `artifacts/ledger/src/pages/PettyCashGiven.tsx`. API: `artifacts/api-server/src/routes/petty-cash-given.ts`. A partner provides petty cash and is credited for that amount in settlement. The aggregate also funds the accountant cash balance.
 
 ### Accountant expenses
 
-UI: `src/pages/AccountantExpenses.tsx`. API: `src/routes/accountant-expenses.ts`. These records use the `petty_cash_spent` table and do not belong to a partner. New or edited expenses cannot exceed the current accountant cash balance; when editing, the existing amount is added back before checking the replacement amount.
+UI: `artifacts/ledger/src/pages/AccountantExpenses.tsx`. API: `artifacts/api-server/src/routes/accountant-expenses.ts`. These records use the `petty_cash_spent` table and do not belong to a partner. New or edited expenses cannot exceed the current accountant cash balance; when editing, the existing amount is added back before checking the replacement amount.
 
 ### Joint company income
 
-UI: `src/pages/JointCompanyIncome.tsx`. API: `src/routes/joint-incomes.ts`. Income has an optional/validated income type in the API contract and is included in dashboard, reports, and final-summary data. The import implementation recognizes `Rent`, `Office Sale`, `Flat Sale`, and `Other`.
+UI: `artifacts/ledger/src/pages/JointCompanyIncome.tsx`. API: `artifacts/api-server/src/routes/joint-incomes.ts`. Income has an optional/validated income type in the API contract and is included in dashboard, reports, and final-summary data. The import implementation recognizes `Rent`, `Office Sale`, `Flat Sale`, and `Other`.
 
 ### Final Summary & Settlement
 
@@ -317,6 +319,8 @@ Shared state is in `artifacts/ledger/src/context/PeriodContext.tsx`, and the con
 
 The frontend sends inclusive `dateFrom` and `dateTo` values in `YYYY-MM-DD` form. All Time sends no date bounds. Dashboard, transaction lists/summaries, final summary, reports, and relevant page exports use the selected period. Backend date filtering compares the stored `entry_date` text values to the bounds.
 
+> When modifying or adding a financial list, summary, dashboard card, report, export, or calculation, verify that the same selected date range is applied consistently wherever the user expects period-filtered values.
+
 When adding a new summary or report, apply the same date range to both the list and its aggregate queries. This is an important consistency rule for this application.
 
 ## 14. Excel/CSV import and export
@@ -349,27 +353,37 @@ Confirmed configuration:
 
 Do not put secrets in source control or README files. The repository does not confirm authentication, authorization, or a required external service integration.
 
-## 17. Development and run commands
+## 17. Clean-machine setup and run commands
 
-Install dependencies with pnpm in the repository root:
+The following is the repository-confirmed setup sequence. The API process requires `PORT`; it fails fast when the variable is missing or invalid.
 
-```bash
-pnpm install
-```
+1. Install Node.js 24 and pnpm.
+2. Clone or copy the repository and open a shell at its root.
+3. Install workspace dependencies:
 
-Run the API:
+   ```bash
+   pnpm install
+   ```
 
-```bash
-PORT=8080 pnpm --filter @workspace/api-server run dev
-```
+4. Optionally choose a stable writable data directory by setting `SQLITE_DATA_DIR`. If omitted, the API uses `data/` relative to its current working directory.
+5. Start the API in one shell:
 
-Run the frontend:
+   ```bash
+   PORT=8080 pnpm --filter @workspace/api-server run dev
+   ```
 
-```bash
-PORT=5173 BASE_PATH=/ pnpm --filter @workspace/ledger run dev
-```
+6. Start the frontend in another shell:
 
-The configured `.replit` workflow named `Project` runs both services in parallel. The API must be available under `/api` for the frontend.
+   ```bash
+   PORT=5173 BASE_PATH=/ pnpm --filter @workspace/ledger run dev
+   ```
+
+7. Confirm the API responds at `GET /api/healthz`.
+8. Open the frontend at the Vite/Replit preview URL for the running ledger workflow.
+
+The configured `.replit` workflow named `Project` runs both services in parallel. `PORT` is consumed by the API entry point and supplied to the Vite command; `BASE_PATH` is supplied to the frontend workflow. The codebase does not define a separate application-level `BASE_PATH` reader.
+
+The API must be available under `/api` for the frontend.
 
 Useful checks:
 
@@ -412,23 +426,40 @@ Review the generated changes, typecheck all affected packages, and update both s
 
 ### Add a feature
 
-1. Define or update the API contract in `lib/api-spec/openapi.yaml`.
-2. Regenerate the client and Zod packages.
-3. Add or update the focused API route under `artifacts/api-server/src/routes/`.
-4. If persistence changes, add a new migration; do not alter an applied migration.
-5. Add the page/component under `artifacts/ledger/src/` and wire its route in `App.tsx`.
-6. Connect all queries and mutations through the generated client.
-7. Invalidate/refetch affected queries after writes.
-8. Apply the global period consistently to lists, summaries, dashboard values, reports, and exports.
-9. Typecheck and manually verify the affected workflow against a disposable/copy database.
+1. Understand the existing architecture and trace the affected flow.
+2. Identify the affected frontend, generated client, OpenAPI contract, route, database table, and calculation layers.
+3. Define or update the API contract in `lib/api-spec/openapi.yaml` when the feature crosses the API boundary.
+4. Regenerate the client and Zod packages.
+5. Add a new migration if persistence changes; do not alter an applied migration.
+6. Add or update the focused API route under `artifacts/api-server/src/routes/`.
+7. Add the page/component under `artifacts/ledger/src/` and wire its route in `App.tsx`.
+8. Connect all queries and mutations through the generated client.
+9. Invalidate/refetch affected queries after writes.
+10. Apply the global period consistently to lists, summaries, dashboard values, reports, exports, and calculations.
+11. Verify financial formulas if financial data is involved.
+12. Typecheck and manually verify CRUD and the affected workflow against a disposable/copy database.
+13. Create a fresh backup before updating a client installation and confirm existing record counts/data remain intact afterward.
 
 ### Modify an existing feature
 
-First identify the page, route, API contract, generated types, and database table involved. Preserve response shapes unless the contract is intentionally versioned/updated. For accounting behavior, treat `final-summary.ts`, `dashboard.ts`, and module summaries as authoritative implementation points and update all affected displays together.
+Trace the change in this order:
+
+```text
+UI page/component
+  → generated API client hook
+  → OpenAPI source and generated schemas
+  → Express route
+  → SQLite table/query
+  → summary/report/final calculation
+```
+
+Preserve response shapes unless the contract is intentionally updated and regenerated. For accounting behavior, treat `final-summary.ts`, `dashboard.ts`, and module summaries as authoritative implementation points and update all affected displays together.
 
 Before changing data behavior, create a backup and test with a copied database. Avoid broad refactors of the workspace or replacing the SQLite runtime with another database unless explicitly required.
 
-## 21. Future Windows EXE packaging
+After an existing-feature change, verify existing records, list results, summaries, refresh/query invalidation, period filters, dashboard cards, reports, and Final Summary/Settlement whenever the change can affect them. Broad refactors should not be made without tracing their financial side effects.
+
+## 22. Future Windows EXE packaging
 
 The database module explicitly resolves `SQLITE_DATA_DIR` so an Electron or other desktop wrapper can place user data outside the packaged application directory. A Windows EXE packager must:
 
@@ -441,7 +472,7 @@ The database module explicitly resolves `SQLITE_DATA_DIR` so an Electron or othe
 
 An Electron configuration, installer, code-signing setup, update channel, or supported Windows architecture is **Not confirmed by the current codebase.**
 
-## 22. Important dependencies and operational gotchas
+## 23. Important dependencies and operational gotchas
 
 - Run with Node.js 24. Older Node.js versions can fail with better-sqlite3 native-module incompatibility.
 - The API uses better-sqlite3 directly. The Drizzle/PostgreSQL package under `lib/db` is not the active persistence layer.
@@ -453,7 +484,21 @@ An Electron configuration, installer, code-signing setup, update channel, or sup
 - The current codebase has no confirmed authentication/authorization layer, automated test suite, audit log, multi-user conflict handling, or hosted synchronization.
 - The current theme contains placeholder red color tokens in `artifacts/ledger/src/index.css`; this is a visual limitation, not an accounting behavior.
 
-## 23. Troubleshooting
+## 24. Known limitations and not-confirmed areas
+
+The following are not implemented or verifiable from the repository:
+
+- Authentication and authorization — **Not confirmed by the current codebase.**
+- Automated test suite — **Not confirmed by the current codebase.**
+- Cloud synchronization, multi-device sync, and conflict resolution — **Not confirmed by the current codebase.**
+- Audit log — **Not confirmed by the current codebase.**
+- Encrypted backups or an off-device backup policy — **Not confirmed by the current codebase.**
+- Production Windows EXE packaging, installer, code signing, or automatic application updates — **Not confirmed by the current codebase.**
+- Formal deployment/operations runbook beyond the repository's `.replit` configuration — **Not confirmed by the current codebase.**
+
+The Settings route is currently an inline placeholder. The current API has no partner-editing endpoint. The theme contains placeholder red color tokens in `artifacts/ledger/src/index.css`.
+
+## 25. Troubleshooting
 
 ### API does not start
 
@@ -479,7 +524,15 @@ The amount cannot exceed the current accountant cash balance, calculated as pett
 
 Confirm the selected date range, partner share percentages, and each partner's investment/direct-expense/petty-cash totals. The authoritative calculation is in `artifacts/api-server/src/routes/final-summary.ts`; the settlement amount is based on the absolute Yasir difference and uses a `0.005` rounding tolerance.
 
-## 24. Maintenance checklist
+### Date-filter mismatch
+
+Compare the selected period in `artifacts/ledger/src/context/PeriodContext.tsx` with the `dateFrom`/`dateTo` parameters sent by the page and the `WHERE` clauses in the corresponding route. Lists and summaries for the same module must use the same inclusive bounds.
+
+### API specification or generated-client mismatch
+
+Update `lib/api-spec/openapi.yaml`, run the API-spec codegen command, review generated client/schema changes, then update the server and frontend consumers. Do not use hand-edited generated files as the permanent source of truth.
+
+## 26. Maintenance checklist
 
 Before a schema or major application update:
 
@@ -491,5 +544,6 @@ Before a schema or major application update:
 6. Run typechecks and the relevant build commands.
 7. Verify health, representative CRUD operations, period-filtered totals, import duplicate handling, reports, and settlement.
 8. Keep the original backup until the updated data has been accepted.
+9. Confirm existing record counts and representative data values were preserved.
 
 This README documents behavior confirmed by the repository at the time it was written. Where a policy, deployment detail, or packaging implementation is not present in source, it is intentionally identified as **Not confirmed by the current codebase.**
