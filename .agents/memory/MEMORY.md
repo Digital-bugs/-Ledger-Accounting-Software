@@ -1,3 +1,0 @@
-- [Node.js version requirement](nodejs-version.md) — better-sqlite3 v13 requires NAPI 10 (Node.js 22+); this project needs nodejs-24 module.
-- [Artifact registration on GitHub import](artifact-registration-on-import.md) — imported projects have artifact.toml on disk but aren't platform-registered; blank preview, fix by delete+recreate via createArtifact then restore sources.
-- [Period-filtered transaction summaries](period-filtered-summaries.md) — module list summaries must apply the same date range as their transaction lists.

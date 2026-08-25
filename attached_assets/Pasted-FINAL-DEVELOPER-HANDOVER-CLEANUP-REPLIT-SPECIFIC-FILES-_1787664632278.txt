@@ -1,0 +1,94 @@
+FINAL DEVELOPER HANDOVER CLEANUP — REPLIT-SPECIFIC FILES AND REFERENCES
+
+I want to prepare this project for final handover to an external professional developer.
+
+My goal is that when the developer receives the project source code, they should see a clean, professional, neutral codebase that is easy to understand, maintain, run, and continue developing.
+
+The project will be provided as a downloaded ZIP file. Therefore, I want all unnecessary Replit-specific files, Replit Agent files, Replit branding, and Replit-specific references removed from the final source code package wherever they are not required for the actual application.
+
+IMPORTANT:
+Do not blindly delete or rename anything. First inspect and verify every Replit-related file or reference and determine whether it is required for the application outside Replit.
+
+Audit the entire repository for items including, but not limited to:
+
+- .replit
+- replit.nix
+- replit-agent related files or folders
+- Replit Agent instructions or memory files
+- Build with Replit Agent
+- Made with Replit
+- Replit branding
+- Replit comments or metadata
+- Replit-specific configuration
+- Any other file, folder, text, script, or reference clearly created only for the Replit environment
+
+For every Replit-related item found:
+
+1. Determine whether it is required for:
+   - normal application runtime
+   - frontend
+   - backend/API
+   - database
+   - SQLite
+   - migrations
+   - backup and restore
+   - build
+   - typechecking
+   - normal local development outside Replit
+
+2. If it is purely Replit-specific and not required for the software to run or for a normal developer to work on the project outside Replit, remove it safely.
+
+3. If it contains any configuration that is necessary for the application, first move or recreate that necessary configuration in a standard, neutral, developer-friendly location, then remove the unnecessary Replit-specific file.
+
+4. Do not simply rename a Replit file if the file is unnecessary. Remove it safely only after verifying it is not needed.
+
+5. Remove unnecessary Replit branding and visible attribution from source files, metadata, comments, documentation, and configuration where appropriate.
+
+6. If any reference to "Trenex Agency" is already present, preserve it. Do not add unnecessary branding anywhere.
+
+ABSOLUTE SAFETY RULES:
+
+- Do not change any accounting logic.
+- Do not change any financial calculations.
+- Do not change settlement formulas.
+- Do not change database data.
+- Do not delete or reset SQLite data.
+- Do not change database schema unless absolutely required to preserve existing functionality after configuration cleanup.
+- Do not change migrations.
+- Do not change API behavior.
+- Do not change frontend functionality.
+- Do not change routes.
+- Do not change imports or exports.
+- Do not change reports.
+- Do not change backup or restore behavior.
+- Do not change business logic.
+- Do not perform unrelated refactoring.
+- Do not make cosmetic changes unrelated to this cleanup.
+- Do not modify README.md unless an actual Replit-specific instruction or setup reference must be corrected because a file was removed.
+
+The application must remain functionally identical after this cleanup.
+
+After the cleanup, verify:
+
+1. The application source code still has all required files for a normal developer to understand and continue development.
+2. No required application functionality was removed.
+3. No Replit-specific file was removed if it was necessary for the software itself.
+4. No unnecessary Replit-specific files remain.
+5. No unnecessary Replit branding or Replit Agent attribution remains in the project.
+6. The project structure is clean and professional for external developer handover.
+7. Run typecheck and build if dependencies are available.
+8. If verification cannot run because dependencies are missing, report the exact reason without installing, changing, or deleting anything unrelated.
+
+DO NOT create a ZIP file.
+
+FINAL RESPONSE MUST CLEARLY SHOW:
+
+1. Every Replit-related file/reference found
+2. Which items were removed
+3. Why each removed item was safe to remove
+4. Which items were retained, if any, and why they are technically necessary
+5. Any configuration that was migrated to another location
+6. All Replit branding/references removed
+7. Typecheck result
+8. Build result
+9. Final confirmation that accounting and application functionality were not intentionally changed

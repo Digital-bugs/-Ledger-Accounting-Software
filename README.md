@@ -10,7 +10,7 @@ The repository is a pnpm workspace monorepo. The browser application and API are
 
 The versions below are the versions declared by the repository. A `catalog:` declaration is resolved from the workspace catalog in `pnpm-workspace.yaml` and should be checked there when upgrading.
 
-- Node.js 24 (`.replit` requests the `nodejs-24` module)
+- Node.js 24 (required by the better-sqlite3 native dependency in this project)
 - pnpm workspaces (`pnpm-workspace.yaml`)
 - TypeScript `~5.9.3` (`package.json`)
 - React `19` via the workspace catalog (`artifacts/ledger/package.json`)
@@ -61,7 +61,6 @@ Node.js 24 is important. better-sqlite3 13 requires the newer N-API available in
 ├── scripts/post-merge.sh           Post-merge setup script
 ├── package.json                    Root scripts and workspace metadata
 ├── pnpm-workspace.yaml             Workspace and dependency catalogs
-└── .replit                         Node, workflow, and deployment configuration
 ```
 
 ## 4. Frontend architecture
@@ -347,9 +346,9 @@ UI: `artifacts/ledger/src/pages/Reports.tsx`. API: `artifacts/api-server/src/rou
 Confirmed configuration:
 
 - `SQLITE_DATA_DIR` — optional absolute or relative data-directory override, resolved by `database.ts`.
-- `PORT` — supplied by the Replit workflows; the API workflow uses `8080` and the Vite workflow uses `5173`.
-- `BASE_PATH` — supplied as `/` by the configured ledger workflow; Vite also provides the client base URL.
-- `SESSION_SECRET` is present in the Replit environment snapshot, but no session/authentication implementation is confirmed in the current application code.
+- `PORT` — required by the API entry point and used by the Vite development server; the documented development commands use `8080` and `5173`.
+- `BASE_PATH` — optional Vite base path; the documented development command uses `/`.
+- `SESSION_SECRET` is present in the environment snapshot, but no session/authentication implementation is confirmed in the current application code.
 
 Do not put secrets in source control or README files. The repository does not confirm authentication, authorization, or a required external service integration.
 
@@ -379,9 +378,9 @@ The following is the repository-confirmed setup sequence. The API process requir
    ```
 
 7. Confirm the API responds at `GET /api/healthz`.
-8. Open the frontend at the Vite/Replit preview URL for the running ledger workflow.
+8. Open the frontend at the URL printed by the Vite development server, normally `http://localhost:5173/`.
 
-The configured `.replit` workflow named `Project` runs both services in parallel. `PORT` is consumed by the API entry point and supplied to the Vite command; `BASE_PATH` is supplied to the frontend workflow. The codebase does not define a separate application-level `BASE_PATH` reader.
+`PORT` is consumed by the API entry point and supplied to the Vite command. The codebase does not define a separate application-level `BASE_PATH` reader.
 
 The API must be available under `/api` for the frontend.
 
@@ -494,7 +493,7 @@ The following are not implemented or verifiable from the repository:
 - Audit log — **Not confirmed by the current codebase.**
 - Encrypted backups or an off-device backup policy — **Not confirmed by the current codebase.**
 - Production Windows EXE packaging, installer, code signing, or automatic application updates — **Not confirmed by the current codebase.**
-- Formal deployment/operations runbook beyond the repository's `.replit` configuration — **Not confirmed by the current codebase.**
+- Formal deployment/operations runbook — **Not confirmed by the current codebase.**
 
 The Settings route is currently an inline placeholder. The current API has no partner-editing endpoint. The theme contains placeholder red color tokens in `artifacts/ledger/src/index.css`.
 
