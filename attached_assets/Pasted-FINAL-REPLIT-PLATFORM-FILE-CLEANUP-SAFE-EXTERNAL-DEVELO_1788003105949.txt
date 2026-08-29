@@ -1,0 +1,175 @@
+FINAL REPLIT PLATFORM FILE CLEANUP — SAFE EXTERNAL DEVELOPER HANDOVER
+
+The project cleanup and neutral verification have already been completed successfully.
+
+Current verified state:
+
+- pnpm install passed
+- pnpm run typecheck passed
+- pnpm run build passed
+- Replit-only Vite plugins were removed
+- @replit/connectors-sdk was removed
+- Replit package/catalog references were cleaned
+- The application now successfully builds as a neutral external Node.js/pnpm project
+- Accounting, API, database, reports, imports/exports, backup/restore, migrations, and business calculations were not intentionally changed
+
+The final goal is to prepare this project as a clean and professional external developer handover, without unnecessary Replit platform or agent files.
+
+IMPORTANT: SOFTWARE SAFETY IS THE HIGHEST PRIORITY.
+
+==================================================
+STEP 1 — CREATE A REVERSIBLE SAFETY CHECKPOINT FIRST
+==================================================
+
+Before deleting or modifying anything:
+
+1. Preserve the current working project state as a reversible checkpoint using the platform's normal version history or rollback mechanism.
+2. Do NOT overwrite or reset application data.
+3. Do NOT modify the SQLite database.
+4. Do NOT modify accounting logic.
+5. The purpose of the checkpoint is only to allow recovery if any unexpected problem occurs.
+
+Do not proceed with destructive cleanup until the current project state is safely recoverable.
+
+==================================================
+STEP 2 — DELETE ONLY PURE REPLIT-SPECIFIC PLATFORM FILES
+==================================================
+
+Delete the following files/directories ONLY if they are confirmed to be purely Replit platform metadata/configuration and are not required by the now-neutral application:
+
+1. .replit
+2. replit.nix
+3. artifacts/api-server/.replit-artifact/
+4. artifacts/ledger/.replit-artifact/
+5. artifacts/mockup-sandbox/.replit-artifact/
+
+Also search the complete repository for any other files or directories whose names contain:
+
+- replit
+- .replit
+- replit-agent
+- Replit Agent
+- .replit-artifact
+
+Delete ONLY files/directories that are clearly and exclusively:
+
+- Replit platform configuration
+- Replit artifact metadata
+- Replit agent metadata
+- Replit-specific environment files
+- Replit-specific project instructions
+- Replit-only configuration files no longer required by the neutral project
+
+Before deleting anything, verify that it is purely Replit-specific.
+
+==================================================
+DO NOT DELETE OR MODIFY THESE
+==================================================
+
+DO NOT delete or modify:
+
+- application source code
+- artifacts/ledger actual frontend application files
+- artifacts/api-server actual API/server files
+- lib/
+- scripts/
+- README.md
+- package.json
+- pnpm-workspace.yaml
+- pnpm-lock.yaml
+- SQLite database or application data
+- accounting logic
+- partner percentages
+- financial calculations
+- settlement calculations
+- dashboard calculations
+- API behavior
+- frontend routes
+- transaction CRUD
+- date filtering
+- reports
+- imports/exports
+- backup/restore functionality
+- migrations
+- database schema
+- working neutral development/build configuration
+
+Do NOT make unrelated refactors or improvements.
+
+Do NOT change business logic.
+
+Do NOT change application behavior.
+
+==================================================
+IF REPLIT PROTECTS A FILE FROM DELETION
+==================================================
+
+If the active Replit environment blocks deletion of any protected file:
+
+- Do NOT bypass platform protections.
+- Do NOT use unsafe workarounds.
+- Do NOT modify application code to force deletion.
+
+Instead:
+
+1. Leave the protected file unchanged in the active workspace.
+2. Report the exact protected file.
+3. Confirm whether it is unnecessary for external development.
+4. Provide the exact ZIP exclusion needed so the file will NOT be included in the final developer ZIP.
+
+The final external developer ZIP must not contain unnecessary Replit platform files.
+
+==================================================
+STEP 3 — FINAL REPOSITORY AUDIT
+==================================================
+
+After cleanup:
+
+1. Search the complete repository for remaining files or directories with Replit in their names.
+2. Report every remaining Replit-named file, if any.
+3. Search source/configuration files for unnecessary Replit-specific references.
+4. Do not remove historical Git metadata or package references unless they are genuinely unnecessary and already verified safe to remove.
+5. Confirm that any remaining Replit reference is either:
+   - required technical code, or
+   - a protected platform file that must simply be excluded from the external ZIP.
+
+==================================================
+STEP 4 — MANDATORY VERIFICATION
+==================================================
+
+Run:
+
+pnpm run typecheck
+
+pnpm run build
+
+Both must pass.
+
+If either verification fails after this cleanup:
+
+1. Stop.
+2. Report the exact failure.
+3. Identify whether the failure was caused by a deletion made during this cleanup.
+4. Do NOT make unrelated application changes just to force the build to pass.
+5. Restore the affected deletion if necessary using the safety checkpoint or normal platform rollback.
+6. Preserve the last known working application state.
+
+==================================================
+FINAL REPORT REQUIRED
+==================================================
+
+Give a concise but complete final report containing:
+
+1. Exact files deleted
+2. Exact directories deleted
+3. Any remaining Replit-named files
+4. Why any remaining Replit file could not be deleted
+5. Exact files/directories that must be excluded from the final external developer ZIP
+6. Confirmation that:
+   - pnpm run typecheck passed
+   - pnpm run build passed
+7. Confirmation that no accounting logic, database data/schema, API behavior, reports, calculations, migrations, backup/restore, import/export, or application functionality was changed
+
+FINAL GOAL:
+
+The final external developer ZIP should be a clean, professional, neutral Node.js/pnpm project with no unnecessary Replit platform or agent files, while preserving the software's existing functionality and financial/accounting behavior exactly.
